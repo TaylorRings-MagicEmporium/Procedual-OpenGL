@@ -17,12 +17,15 @@ using namespace std;
 using namespace glm;
 
 // Size of the terrain
-const int MAP_SIZE = 5;
+const int MAP_SIZE = 33;
 
 const int SCREEN_WIDTH = 500;
 const int SCREEN_HEIGHT = 500;
 
 float terrain[MAP_SIZE][MAP_SIZE] = {};
+glm::vec3 CamPos = glm::vec3(-10.0f, -5.0f, -30.0f);
+float RANDOM_MAX = 1.0f;
+float HEIGHT_MAX = 10.0f;
 
 struct Vertex
 {
@@ -68,7 +71,10 @@ buffer[1],
 vao[1];
 
 float GetRandom() {
-	return (rand() % 3) - 1;
+	float r = (((rand() % 10) / 5.0f) - 1.0f);
+	//std::cout << r << std::endl;
+	return r;
+
 }
 
 void Diamond_step(int x, int y, int step) {
@@ -77,57 +83,106 @@ void Diamond_step(int x, int y, int step) {
 	p2 = terrain[x][y+step];
 	p3 = terrain[x+step][y];
 	p4 = terrain[x+step][y+step];
-	step = step / 2;
+	//step = step / 2;
 
-	terrain[step][step] = ((p1 + p2 + p3 + p4) / 4.0f) + GetRandom();
+	terrain[x + step / 2][y + step / 2] = ((p1 + p2 + p3 + p4) / 4.0f) +GetRandom() * HEIGHT_MAX * RANDOM_MAX;
 }
 
 void Square_step(int x, int y, int step) {
 
 	float p5, p6, p7, p8;
+	float count = 0;
+	//left
 	p5 = terrain[x][y];
-	p6 = terrain[x - step][y - step];
-	p7 = terrain[x - step][y + step];
-	if (x - step * 2 < 0) {
-		terrain[x - step][y] = ((p5 + p6 + p7) / 3.0f) + GetRandom();
+	p6 = terrain[x][y + step];
+	count += 2;
+	if (x - step / 2 < 0) {
+		p7 = 0.0f;
 	}
 	else {
-		p8 = terrain[x - step * 2][y];
-		terrain[x - step][y] = ((p5 + p6 + p7 + p8) / 4.0f) + GetRandom();
+		p7 = terrain[x - step / 2][y + step / 2];
+		count += 1;
 	}
-
-
-	p6 = terrain[x - step][y - step];
-	p7 = terrain[x + step][y - step];
-	if (y - step * 2 < 0) {
-		terrain[x][y - step] = ((p5 + p6 + p7) / 3.0f) + GetRandom();
+	if (x + step / 2 > MAP_SIZE) {
+		p8 = 0.0f;
 	}
 	else {
-		p8 = terrain[x][y - step * 2];
-		terrain[x][y - step] = ((p5 + p6 + p7 + p8) / 4.0f) + GetRandom();
+		p8 = terrain[x + step / 2][y + step / 2];
+		count += 1;
 	}
 
+	terrain[x][y + step / 2] = ((p5 + p6 + p7 + p8) / count) +GetRandom() * HEIGHT_MAX * RANDOM_MAX;
 
-	p6 = terrain[x + step][y - step];
-	p7 = terrain[x + step][y + step];
-	if (x + step * 2 > (MAP_SIZE - 1)) {
-		terrain[x + step][y] = ((p5 + p6 + p7) / 3.0f) + GetRandom();
+	count = 0;
+
+
+	//up
+	p5 = terrain[x][y];
+	p6 = terrain[x + step][y];
+	count += 2;
+	if (y - step / 2 < 0) {
+		p7 = 0.0f;
 	}
 	else {
-		p8 = terrain[x + step * 2][y];
-		terrain[x + step][y] = ((p5 + p6 + p7 + p8) / 4.0f) + GetRandom();
+		p7 = terrain[x + step / 2][y - step / 2];
+		count += 1;
 	}
-
-
-	p6 = terrain[x - step][y + step];
-	p7 = terrain[x + step][y + step];
-	if (y + step * 2 > (MAP_SIZE - 1)) {
-		terrain[x][y + step] = ((p5 + p6 + p7) / 3.0f) + GetRandom();
+	if (y + step / 2 > MAP_SIZE) {
+		p8 = 0.0f;
 	}
 	else {
-		p8 = terrain[x][y + step * 2];
-		terrain[x][y + step] = ((p5 + p6 + p7 + p8) / 4.0f) + GetRandom();
+		p8 = terrain[x + step / 2][y + step / 2];
+		count += 1;
 	}
+
+	terrain[x + step / 2][y] = ((p5 + p6 + p7 + p8) / count) +GetRandom() * HEIGHT_MAX * RANDOM_MAX;
+
+	count = 0;
+	//right
+	p5 = terrain[x+step][y];
+	p6 = terrain[x+step][y + step];
+	p7 = terrain[x + step / 2][y + step / 2];
+	count += 3;
+	//if (x + step / 2 > MAP_SIZE ) {
+	//	p7 = 0.0f;
+	//}
+	//else {
+	//	p7 = terrain[x + step / 2][y + step / 2];
+	//	count += 1;
+	//}
+	if (x + ((step / 2) * 3) > MAP_SIZE) {
+		p8 = 0.0f;
+	}
+	else {
+		p8 = terrain[x + ((step / 2) * 3)][y + step / 2];
+		count += 1;
+	}
+
+	terrain[x + step][y + step / 2] = ((p5 + p6 + p7 + p8) / count) +GetRandom() * HEIGHT_MAX * RANDOM_MAX;
+
+	count = 0;
+	//down
+	p5 = terrain[x][y+step];
+	p6 = terrain[x+step][y + step];
+	p7 = terrain[x + step / 2][y + step / 2];
+	count += 3;
+	//if (x + step / 2 > MAP_SIZE || y + step / 2 > MAP_SIZE) {
+	//	p7 = 0.0f;
+	//}
+	//else {
+
+	//	count += 1;
+	//}
+	if (y + ((step / 2) * 3) > MAP_SIZE) {
+		p8 = 0.0f;
+	}
+	else {
+		p8 = terrain[x + step / 2][y + ((step / 2) * 3)];
+		count += 1;
+	}
+
+	terrain[x + step / 2][y + step] = ((p5 + p6 + p7 + p8) / count) +GetRandom() * HEIGHT_MAX * RANDOM_MAX;
+
 }
 
 // Function to read text file, used to read shader files
@@ -162,32 +217,37 @@ void setup(void)
 
 	// TODO: Add your code here to calculate the height values of the terrain using the Diamond square algorithm
 
-	srand(time(NULL));
+	srand(4);
 
-	terrain[0][0] = GetRandom();
-	terrain[0][MAP_SIZE - 1] = GetRandom();
-	terrain[MAP_SIZE - 1][0] = GetRandom();
-	terrain[MAP_SIZE - 1][MAP_SIZE - 1] = GetRandom();
+	terrain[0][0] = GetRandom()*HEIGHT_MAX;
+	terrain[0][MAP_SIZE - 1] = GetRandom()* HEIGHT_MAX;
+	terrain[MAP_SIZE - 1][0] = GetRandom()* HEIGHT_MAX;
+	terrain[MAP_SIZE - 1][MAP_SIZE - 1] = GetRandom()* HEIGHT_MAX;
 
-	int step = MAP_SIZE;
+	//for (int i = 0; i < 100; i++) {
+	//	GetRandom();
+	//}
+
+
+	int step = MAP_SIZE - 1;
 	while (step > 1) {
-		for (int x = 0; x < MAP_SIZE; x += step) {
-			for (int y = 0; y < MAP_SIZE; y += step) {
+		for (int x = 0; x < MAP_SIZE-1; x += step) {
+			for (int y = 0; y < MAP_SIZE-1; y += step) {
 				Diamond_step(x, y, step);
 			}
 		}
 
-
-
-		for (int x = step/2; x < MAP_SIZE; x += step) {
-			for (int y = step/2; y < MAP_SIZE; y += step) {
-				std::cout << x << ", " << y << std::endl;
+		for (int x = 0; x < MAP_SIZE-1; x += step) {
+			for (int y = 0; y < MAP_SIZE-1; y += step) {
+				//std::cout << x << ", " << y << std::endl;
 				Square_step(x, y, step);
 			}
 		}
-		std::cout << std::endl;
-
+		//std::cout << std::endl;
+		std::cout << "BEFORE: " << step << std::endl;
 		step = step / 2;
+		std::cout << "AFTER: " << step << std::endl;
+		RANDOM_MAX *= 0.5f;
 	}
 
 
@@ -223,7 +283,6 @@ void setup(void)
 			i++;
 		}
 	}
-
 	
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 
@@ -268,9 +327,10 @@ void setup(void)
 	// Obtain modelview matrix uniform location and set value.
 	mat4 modelViewMat = mat4(1.0);
 	// Move terrain into view - glm::translate replaces glTranslatef
-	modelViewMat = translate(modelViewMat, vec3(-2.5f, -2.5f, -10.0f)); // 5x5 grid
+	modelViewMat = translate(modelViewMat, CamPos); // 5x5 grid
+	glm::mat4 lol = lookAt(glm::vec3(MAP_SIZE/2,10,MAP_SIZE + 10), glm::vec3(MAP_SIZE/2,0,MAP_SIZE/2), cross(glm::normalize(glm::vec3(MAP_SIZE/2,0,MAP_SIZE/2) - CamPos), glm::vec3(1, 0, 0)));
 	modelViewMatLoc = glGetUniformLocation(programId, "modelViewMat");
-	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(modelViewMat));
+	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(lol));
 
 	///////////////////////////////////////
 }
@@ -303,9 +363,34 @@ void keyInput(unsigned char key, int x, int y)
 	case 27:
 		exit(0);
 		break;
+	case 'w':
+		CamPos += glm::vec3(0, 0, 0.1);
+		break;
+	case 'a':
+		CamPos += glm::vec3(0.1, 0, 0);
+		break;
+	case 's':
+		CamPos += glm::vec3(0, 0, -0.1);
+		break;
+	case 'd':
+		CamPos += glm::vec3(-0.1, 0, 0);
+		break;
 	default:
 		break;
 	}
+}
+
+void UpdateGame() {
+
+	// Obtain modelview matrix uniform location and set value.
+	mat4 modelViewMat = mat4(1.0);
+	// Move terrain into view - glm::translate replaces glTranslatef
+	modelViewMat = translate(modelViewMat, CamPos); // 5x5 grid
+	glm::mat4 lol = lookAt(CamPos, glm::vec3(0), cross(-CamPos, glm::vec3(1, 0, 0)));
+	modelViewMatLoc = glGetUniformLocation(programId, "modelViewMat");
+	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(lol));
+
+	glutPostRedisplay();
 }
 
 // Main routine.
@@ -331,11 +416,12 @@ int main(int argc, char* argv[])
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(resize);
 	glutKeyboardFunc(keyInput);
+	//glutIdleFunc(UpdateGame);
 
 	glewExperimental = GL_TRUE;
 	glewInit();
 
 	setup();
-
 	glutMainLoop();
+
 }
