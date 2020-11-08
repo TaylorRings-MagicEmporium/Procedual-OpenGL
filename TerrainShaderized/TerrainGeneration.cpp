@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <ctime>
+#include <vector>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -29,8 +30,9 @@ float HEIGHT_MAX = 10.0f;
 
 struct Vertex
 {
-	float coords[4];
-	float colors[4];
+	vec4 coords;
+	//vec4 colors;
+	vec3 normal;
 };
 
 struct Matrix4x4
@@ -38,17 +40,55 @@ struct Matrix4x4
 	float entries[16];
 };
 
-static mat4 projMat = mat4(1.0);
-
-static const Matrix4x4 IDENTITY_MATRIX4x4 =
+struct Material 
 {
-	{
-		1.0, 0.0, 0.0, 0.0,
-		0.0, 1.0, 0.0, 0.0,
-		0.0, 0.0, 1.0, 0.0,
-		0.0, 0.0, 0.0, 1.0
-	}
+	vec4 ambRefl;
+	vec4 difRefl;
+	vec4 specRefl;
+	vec4 emitCols;
+	float shininess;
 };
+
+struct Light
+{
+	vec4 ambCols;
+	vec4 difCols;
+	vec4 specCols;
+	vec4 coords;
+
+};
+
+static const Material terrainFandB =
+{
+	vec4(1.0f,1.0f,1.0f,1.0f),
+	vec4(1.0f,1.0f,1.0f,1.0f),
+	vec4(1.0f,1.0f,1.0f,1.0f),
+	vec4(0.0f,0.0f,0.0f,1.0f),
+	50.0f
+
+};
+
+static const Light light0 =
+{
+	vec4(0.0,0.0,0.0,1.0),
+	vec4(1.0,1.0,1.0,1.0),
+	vec4(1.0,1.0,1.0,1.0),
+	vec4(1.0,1.0,0.0,1.0)
+
+};
+
+static mat4 projMat = mat4(1.0);
+static mat3 normalMat = mat3(1.0);
+//static const Matrix4x4 IDENTITY_MATRIX4x4 =
+//{
+//	{
+//		1.0, 0.0, 0.0, 0.0,
+//		0.0, 1.0, 0.0, 0.0,
+//		0.0, 0.0, 1.0, 0.0,
+//		0.0, 0.0, 0.0, 1.0
+//	}
+//};
+static const vec4 globAmb = vec4(0.2, 0.2, 0.2, 1.0);
 
 static enum buffer { TERRAIN_VERTICES };
 static enum object { TERRAIN };
@@ -202,6 +242,16 @@ char* readTextFile(char* aTextFile)
 	return content;
 }
 
+void shaderCompileTest(GLuint shader) {
+	GLint result = GL_FALSE;
+	int logLength;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+	std::vector<GLchar> vertShaderError((logLength > 1) ? logLength : 1);
+	glGetShaderInfoLog(shader, logLength, NULL, &vertShaderError[0]);
+	std::cout << &vertShaderError[0] << std::endl;
+}
+
 // Initialization routine.
 void setup(void)
 {
@@ -217,7 +267,7 @@ void setup(void)
 
 	// TODO: Add your code here to calculate the height values of the terrain using the Diamond square algorithm
 
-	srand(4);
+	srand(2);
 
 	terrain[0][0] = GetRandom()*HEIGHT_MAX;
 	terrain[0][MAP_SIZE - 1] = GetRandom()* HEIGHT_MAX;
@@ -249,10 +299,6 @@ void setup(void)
 		std::cout << "AFTER: " << step << std::endl;
 		RANDOM_MAX *= 0.5f;
 	}
-
-
-	//Square_step(step, step, step);
-
 	
 	// Intialise vertex array
 	int i = 0;
@@ -262,7 +308,15 @@ void setup(void)
 		for (int x = 0; x < MAP_SIZE; x++)
 		{
 			// Set the coords (1st 4 elements) and a default colour of black (2nd 4 elements) 
-			terrainVertices[i] = { { (float)x, terrain[x][z], (float)z, 1.0 }, { 0.0, 0.0, 0.0, 1.0 } };
+			terrainVertices[i] = {
+				vec4((float)x,terrain[x][z],(float)z,1.0),
+				//vec4(0.0,0.0,0.0,1.0),
+				vec3(0.0,1.0,0.0)
+			};
+			//{ (float)x, terrain[x][z], (float)z, 1.0 },
+			//{ 0.0, 0.0, 0.0, 1.0 },
+			//{0.0,0.0,0.0}
+			//};
 			i++;
 		}
 	}
@@ -283,6 +337,52 @@ void setup(void)
 			i++;
 		}
 	}
+
+	//computing normal vectors
+	int index1, index2, index3;
+	vec3 p1, p2, p3;
+	vec3 edge1, edge2;
+	vec3 crossNorm, finalNorm;
+	for (int z = 0; z < MAP_SIZE - 1; z++) {
+		for (int x = 0; x < (MAP_SIZE * 2 - 2); x++) {
+			index1 = terrainIndexData[z][x];
+			index2 = terrainIndexData[z][x+1];
+			index3 = terrainIndexData[z][x+2];
+
+			p1 = vec3(terrainVertices[index1].coords);
+			p2 = vec3(terrainVertices[index2].coords);
+			p3 = vec3(terrainVertices[index3].coords);
+
+			edge1 = p2 - p1;
+			edge2 = p3 - p1;
+
+			//crossNorm = cross(edge2, edge1);
+			if (x % 2 == 1) {
+				crossNorm = cross(edge2, edge1);
+			}
+			else {
+				crossNorm = cross(edge1, edge2);
+			}
+			if (dot(crossNorm, vec3(0, 1, 0)) < 1e-06f) {
+				finalNorm = -crossNorm;
+			}
+			else {
+				finalNorm = crossNorm;
+			}
+
+			//finalNorm = crossNorm;
+
+			terrainVertices[index1].normal = finalNorm + terrainVertices[index1].normal;
+			terrainVertices[index2].normal = finalNorm + terrainVertices[index2].normal;
+			terrainVertices[index3].normal = finalNorm + terrainVertices[index3].normal;
+
+		}
+	}
+
+	//normalising normals
+	for (int i = 0; i < (MAP_SIZE * MAP_SIZE) - 1; i++) {
+		terrainVertices->normal = normalize(terrainVertices->normal);
+	}
 	
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 
@@ -291,17 +391,24 @@ void setup(void)
 	vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShaderId, 1, (const char**)&vertexShader, NULL);
 	glCompileShader(vertexShaderId);
+	std::cout << "VERTEX::" << std::endl;
+	shaderCompileTest(vertexShaderId);
 
 	char* fragmentShader = readTextFile("fragmentShader.glsl");
 	fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShaderId, 1, (const char**)&fragmentShader, NULL);
 	glCompileShader(fragmentShaderId);
+	std::cout << "FRAGMENT::" << std::endl;
+	shaderCompileTest(fragmentShaderId);
 
 	programId = glCreateProgram();
 	glAttachShader(programId, vertexShaderId);
 	glAttachShader(programId, fragmentShaderId);
 	glLinkProgram(programId);
 	glUseProgram(programId);
+
+	//std::cout << "COMPUTE::" << std::endl;
+	//shaderCompileTest(programId);
 	///////////////////////////////////////
 
 	// Create vertex array object (VAO) and vertex buffer object (VBO) and associate data with vertex shader.
@@ -313,7 +420,7 @@ void setup(void)
 
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(terrainVertices[0]), 0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(terrainVertices[0]), (GLvoid*)sizeof(terrainVertices[0].coords));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(terrainVertices[0]), (GLvoid*)sizeof(terrainVertices[0].coords));
 	glEnableVertexAttribArray(1);
 	///////////////////////////////////////
 
@@ -333,12 +440,37 @@ void setup(void)
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(lol));
 
 	///////////////////////////////////////
+
+	glUniform4fv(glGetUniformLocation(programId, "terrainFandB.ambRefl"), 1, &terrainFandB.ambRefl[0]);
+	glUniform4fv(glGetUniformLocation(programId, "terrainFandB.difRefl"), 1, &terrainFandB.difRefl[0]);
+	glUniform4fv(glGetUniformLocation(programId, "terrainFandB.specRefl"), 1, &terrainFandB.specRefl[0]);
+	glUniform4fv(glGetUniformLocation(programId, "terrainFandB.emitCols"), 1, &terrainFandB.emitCols[0]);
+	glUniform1f(glGetUniformLocation(programId, "terrainFandB.shininess"), terrainFandB.shininess);
+
+	///////////////////////////////////////
+
+	glUniform4fv(glGetUniformLocation(programId, "globAmb"), 1, &globAmb[0]);
+
+	///////////////////////////////////////
+
+	glUniform4fv(glGetUniformLocation(programId, "light0.ambCols"), 1, &light0.ambCols[0]);
+	glUniform4fv(glGetUniformLocation(programId, "light0.difCols"), 1, &light0.difCols[0]);
+	glUniform4fv(glGetUniformLocation(programId, "light0.specCols"), 1, &light0.specCols[0]);
+	glUniform4fv(glGetUniformLocation(programId, "light0.coords"), 1, &light0.coords[0]);
+
+	///////////////////////////////////////
+
+	unsigned int normalMatLoc = glGetUniformLocation(programId, "normalMat");
+	normalMat = transpose(inverse(mat3(modelViewMat)));
+	glUniformMatrix3fv(normalMatLoc, 1, GL_FALSE, value_ptr(normalMat));
 }
+
+
 
 // Drawing routine.
 void drawScene(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// For each row - draw the triangle strip
 	for (int i = 0; i < MAP_SIZE - 1; i++)
@@ -411,8 +543,8 @@ int main(int argc, char* argv[])
 	glutCreateWindow("TerrainGeneration");
 
 	// Set OpenGL to render in wireframe mode
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glEnable(GL_DEPTH_TEST);
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(resize);
 	glutKeyboardFunc(keyInput);
