@@ -6,6 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <ctime>
 #include <vector>
+#include <chrono>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -13,6 +14,8 @@
 //#include <GL/glext.h>
 #pragma comment(lib, "glew32d.lib") 
 #pragma comment(lib, "freeglut.lib")
+
+#include "getbmp.h"
 
 using namespace std;
 using namespace glm;
@@ -24,15 +27,21 @@ const int SCREEN_WIDTH = 500;
 const int SCREEN_HEIGHT = 500;
 
 float terrain[MAP_SIZE][MAP_SIZE] = {};
+float water[MAP_SIZE][MAP_SIZE] = {};
 glm::vec3 CamPos = glm::vec3(-10.0f, -5.0f, -30.0f);
 float RANDOM_MAX = 1.0f;
-float HEIGHT_MAX = 10.0f;
+float HEIGHT_MAX = 8.0f;
+
+
+auto startTime = std::chrono::system_clock::now();
+float waterHightDivider = 3.0f;
 
 struct Vertex
 {
 	vec4 coords;
 	//vec4 colors;
 	vec3 normal;
+	vec2 texcoords;
 };
 
 struct Matrix4x4
@@ -79,6 +88,13 @@ static const Light light0 =
 
 static mat4 projMat = mat4(1.0);
 static mat3 normalMat = mat3(1.0);
+
+static BitMapFile* image[5];
+
+static unsigned int
+texture[5],
+TexLoc[5];
+
 //static const Matrix4x4 IDENTITY_MATRIX4x4 =
 //{
 //	{
@@ -90,16 +106,19 @@ static mat3 normalMat = mat3(1.0);
 //};
 static const vec4 globAmb = vec4(0.2, 0.2, 0.2, 1.0);
 
-static enum buffer { TERRAIN_VERTICES };
-static enum object { TERRAIN };
+static enum buffer { TERRAIN_VERTICES, WATER_VERTICES };
+static enum object { TERRAIN, WATEROJ };
+static enum TextureName { SAND, GRASS, ROCK, SNOW, WATER };
 
 // Globals
 static Vertex terrainVertices[MAP_SIZE*MAP_SIZE] = {};
+static Vertex waterVertices[MAP_SIZE * MAP_SIZE] = {};
 
 const int numStripsRequired = MAP_SIZE - 1;
 const int verticesPerStrip = 2 * MAP_SIZE;
 
 unsigned int terrainIndexData[numStripsRequired][verticesPerStrip];
+unsigned int waterIndexData[numStripsRequired][verticesPerStrip];
 
 static unsigned int
 programId,
@@ -107,8 +126,8 @@ vertexShaderId,
 fragmentShaderId,
 modelViewMatLoc,
 projMatLoc,
-buffer[1],
-vao[1];
+buffer[2],
+vao[2];
 
 float GetRandom() {
 	float r = (((rand() % 10) / 5.0f) - 1.0f);
@@ -262,6 +281,7 @@ void setup(void)
 		for (int z = 0; z < MAP_SIZE; z++)
 		{
 			terrain[x][z] = 0;
+			water[x][z] = 0;
 		}
 	}
 
@@ -273,11 +293,6 @@ void setup(void)
 	terrain[0][MAP_SIZE - 1] = GetRandom()* HEIGHT_MAX;
 	terrain[MAP_SIZE - 1][0] = GetRandom()* HEIGHT_MAX;
 	terrain[MAP_SIZE - 1][MAP_SIZE - 1] = GetRandom()* HEIGHT_MAX;
-
-	//for (int i = 0; i < 100; i++) {
-	//	GetRandom();
-	//}
-
 
 	int step = MAP_SIZE - 1;
 	while (step > 1) {
@@ -294,29 +309,42 @@ void setup(void)
 			}
 		}
 		//std::cout << std::endl;
-		std::cout << "BEFORE: " << step << std::endl;
+		//std::cout << "BEFORE: " << step << std::endl;
 		step = step / 2;
-		std::cout << "AFTER: " << step << std::endl;
+		//std::cout << "AFTER: " << step << std::endl;
 		RANDOM_MAX *= 0.5f;
 	}
 	
 	// Intialise vertex array
 	int i = 0;
 
+	//calculate texture coords
+	float fTexS = float(MAP_SIZE) * 0.1f;
+	float fTexT = float(MAP_SIZE) * 0.1f;
+
 	for (int z = 0; z < MAP_SIZE; z++)
 	{
 		for (int x = 0; x < MAP_SIZE; x++)
 		{
 			// Set the coords (1st 4 elements) and a default colour of black (2nd 4 elements) 
+			float fScaleS = float(x) / float(MAP_SIZE - 1);
+			float fScaleT = float(z) / float(MAP_SIZE - 1);
+
 			terrainVertices[i] = {
 				vec4((float)x,terrain[x][z],(float)z,1.0),
 				//vec4(0.0,0.0,0.0,1.0),
-				vec3(0.0,1.0,0.0)
+				vec3(0.0,1.0,0.0),
+				vec2((1.0f / (float(MAP_SIZE) - 1)) * x,(1.0f / (float(MAP_SIZE) - 1)) * z)
+				//vec2(fTexS * fScaleS,fTexT * fScaleT)
 			};
-			//{ (float)x, terrain[x][z], (float)z, 1.0 },
-			//{ 0.0, 0.0, 0.0, 1.0 },
-			//{0.0,0.0,0.0}
-			//};
+
+			waterVertices[i] = {
+				vec4((float)x,water[x][z],(float)z, 1.0),
+				vec3(0.0, 1.0, 0.0),
+				vec2((1.0f / (float(MAP_SIZE) - 1)) * x, (1.0f / (float(MAP_SIZE) - 1)) * z)
+			};
+
+			std::cout << (1.0f / (float(MAP_SIZE)-1)) * (x) << ", " << (1.0f / (float(MAP_SIZE)-1)) * (z) << std::endl;
 			i++;
 		}
 	}
@@ -334,6 +362,21 @@ void setup(void)
 		for (int x = 1; x < MAP_SIZE * 2 + 1; x += 2)
 		{
 			terrainIndexData[z][x] = i;
+			i++;
+		}
+	}
+	i = 0;
+	for (int z = 0; z < MAP_SIZE - 1; z++)
+	{
+		i = z * MAP_SIZE;
+		for (int x = 0; x < MAP_SIZE * 2; x += 2)
+		{
+			waterIndexData[z][x] = i;
+			i++;
+		}
+		for (int x = 1; x < MAP_SIZE * 2 + 1; x += 2)
+		{
+			waterIndexData[z][x] = i;
 			i++;
 		}
 	}
@@ -387,14 +430,14 @@ void setup(void)
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 
 	// Create shader program executable - read, compile and link shaders
-	char* vertexShader = readTextFile("vertexShader.glsl");
+	char* vertexShader = readTextFile("Shaders/TerrainVertexShader.glsl");
 	vertexShaderId = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShaderId, 1, (const char**)&vertexShader, NULL);
 	glCompileShader(vertexShaderId);
 	std::cout << "VERTEX::" << std::endl;
 	shaderCompileTest(vertexShaderId);
 
-	char* fragmentShader = readTextFile("fragmentShader.glsl");
+	char* fragmentShader = readTextFile("Shaders/TerrainFragmentShader.glsl");
 	fragmentShaderId = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShaderId, 1, (const char**)&fragmentShader, NULL);
 	glCompileShader(fragmentShaderId);
@@ -405,15 +448,19 @@ void setup(void)
 	glAttachShader(programId, vertexShaderId);
 	glAttachShader(programId, fragmentShaderId);
 	glLinkProgram(programId);
-	glUseProgram(programId);
 
-	//std::cout << "COMPUTE::" << std::endl;
-	//shaderCompileTest(programId);
+	glDeleteShader(vertexShaderId);
+	glDeleteShader(fragmentShaderId);
+
 	///////////////////////////////////////
 
 	// Create vertex array object (VAO) and vertex buffer object (VBO) and associate data with vertex shader.
-	glGenVertexArrays(1, vao);
-	glGenBuffers(1, buffer);
+
+	glUseProgram(programId);
+
+	glGenVertexArrays(2, vao);
+	glGenBuffers(2, buffer);
+
 	glBindVertexArray(vao[TERRAIN]);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer[TERRAIN_VERTICES]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(terrainVertices), terrainVertices, GL_STATIC_DRAW);
@@ -422,7 +469,9 @@ void setup(void)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(terrainVertices[0]), (GLvoid*)sizeof(terrainVertices[0].coords));
 	glEnableVertexAttribArray(1);
-	///////////////////////////////////////
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(terrainVertices[0]), (GLvoid*)(sizeof(terrainVertices[0].normal) + sizeof(terrainVertices[0].coords)));
+	glEnableVertexAttribArray(2);
+	/////////////////////////////////////////
 
 	// Obtain projection matrix uniform location and set value.
 	projMatLoc = glGetUniformLocation(programId, "projMat");
@@ -436,6 +485,7 @@ void setup(void)
 	// Move terrain into view - glm::translate replaces glTranslatef
 	modelViewMat = translate(modelViewMat, CamPos); // 5x5 grid
 	glm::mat4 lol = lookAt(glm::vec3(MAP_SIZE/2,10,MAP_SIZE + 10), glm::vec3(MAP_SIZE/2,0,MAP_SIZE/2), cross(glm::normalize(glm::vec3(MAP_SIZE/2,0,MAP_SIZE/2) - CamPos), glm::vec3(1, 0, 0)));
+	//glm::mat4 lol = lookAt(glm::vec3(0,0,0), glm::vec3(MAP_SIZE / 2, 0, MAP_SIZE / 2), cross(glm::normalize(glm::vec3(MAP_SIZE / 2, 0, MAP_SIZE / 2) - CamPos), glm::vec3(1, 0, 0)));
 	modelViewMatLoc = glGetUniformLocation(programId, "modelViewMat");
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(lol));
 
@@ -463,6 +513,58 @@ void setup(void)
 	unsigned int normalMatLoc = glGetUniformLocation(programId, "normalMat");
 	normalMat = transpose(inverse(mat3(modelViewMat)));
 	glUniformMatrix3fv(normalMatLoc, 1, GL_FALSE, value_ptr(normalMat));
+
+	unsigned int Loc = glGetUniformLocation(programId, "HEIGHT_MAX");
+	glUniform1f(Loc, HEIGHT_MAX);
+
+	///////////////////////////////////////
+
+	//load textures
+	image[GRASS] = getbmp("Textures/grass.bmp");
+
+	glGenTextures(5, texture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture[GRASS]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[GRASS]->sizeX, image[GRASS]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[GRASS]->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	TexLoc[GRASS] = glGetUniformLocation(programId, "grassTex");
+	glUniform1i(TexLoc[GRASS], 0);
+
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	//////////////////////////////////////
+
+	image[SAND] = getbmp("Textures/sand.bmp");
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture[SAND]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[SAND]->sizeX, image[SAND]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[SAND]->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	TexLoc[SAND] = glGetUniformLocation(programId, "sandTex");
+	glUniform1i(TexLoc[SAND], 1);
+
+	//////////////////////////////////////
+
+	glBindVertexArray(0);
 }
 
 
@@ -471,12 +573,24 @@ void setup(void)
 void drawScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
-	// For each row - draw the triangle strip
+
+	glUseProgram(programId);
+
+	//unsigned int Loc = glGetUniformLocation(programId, "OBJECT");
+	//glUniform1i(Loc, 0);
+	glBindVertexArray(vao[TERRAIN]);
+	//For each row - draw the triangle strip
 	for (int i = 0; i < MAP_SIZE - 1; i++)
 	{
 		glDrawElements(GL_TRIANGLE_STRIP, verticesPerStrip, GL_UNSIGNED_INT, terrainIndexData[i]);
 	}
+
 
 	glFlush();
 }
@@ -496,16 +610,16 @@ void keyInput(unsigned char key, int x, int y)
 		exit(0);
 		break;
 	case 'w':
-		CamPos += glm::vec3(0, 0, 0.1);
-		break;
-	case 'a':
-		CamPos += glm::vec3(0.1, 0, 0);
-		break;
-	case 's':
 		CamPos += glm::vec3(0, 0, -0.1);
 		break;
-	case 'd':
+	case 'a':
 		CamPos += glm::vec3(-0.1, 0, 0);
+		break;
+	case 's':
+		CamPos += glm::vec3(0, 0, 0.1);
+		break;
+	case 'd':
+		CamPos += glm::vec3(0.1, 0, 0);
 		break;
 	default:
 		break;
@@ -514,11 +628,15 @@ void keyInput(unsigned char key, int x, int y)
 
 void UpdateGame() {
 
-	// Obtain modelview matrix uniform location and set value.
-	mat4 modelViewMat = mat4(1.0);
+	//// Obtain modelview matrix uniform location and set value.
+	//mat4 modelViewMat = mat4(1.0);
 	// Move terrain into view - glm::translate replaces glTranslatef
-	modelViewMat = translate(modelViewMat, CamPos); // 5x5 grid
-	glm::mat4 lol = lookAt(CamPos, glm::vec3(0), cross(-CamPos, glm::vec3(1, 0, 0)));
+	//modelViewMat = translate(modelViewMat, CamPos); // 5x5 grid
+
+	glm::mat4 lol = lookAt(glm::vec3(MAP_SIZE / 2, 10, MAP_SIZE + 10) + CamPos, glm::vec3(MAP_SIZE / 2, 0, MAP_SIZE / 2) + CamPos, cross(glm::normalize(glm::vec3(MAP_SIZE / 2, 10, MAP_SIZE / 2) - CamPos), glm::vec3(1, 0, 0)));
+
+	glUseProgram(programId);
+	
 	modelViewMatLoc = glGetUniformLocation(programId, "modelViewMat");
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(lol));
 
@@ -544,11 +662,11 @@ int main(int argc, char* argv[])
 
 	// Set OpenGL to render in wireframe mode
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glEnable(GL_DEPTH_TEST);
+
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(resize);
 	glutKeyboardFunc(keyInput);
-	//glutIdleFunc(UpdateGame);
+	glutIdleFunc(UpdateGame);
 
 	glewExperimental = GL_TRUE;
 	glewInit();
