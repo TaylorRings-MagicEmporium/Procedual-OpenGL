@@ -107,7 +107,7 @@ TexLoc[5];
 static const vec4 globAmb = vec4(0.2, 0.2, 0.2, 1.0);
 
 static enum buffer { TERRAIN_VERTICES, WATER_VERTICES };
-static enum object { TERRAIN, WATEROJ };
+static enum object { TERRAIN, WATEROBJ };
 static enum TextureName { SAND, GRASS, ROCK, SNOW, WATER };
 
 // Globals
@@ -562,9 +562,41 @@ void setup(void)
 	TexLoc[SAND] = glGetUniformLocation(programId, "sandTex");
 	glUniform1i(TexLoc[SAND], 1);
 
+	image[WATER] = getbmp("Textures/water.bmp");
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, texture[WATER]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[WATER]->sizeX, image[WATER]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[WATER]->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	TexLoc[WATER] = glGetUniformLocation(programId, "waterTex");
+	glUniform1i(TexLoc[WATER], 2);
+
 	//////////////////////////////////////
 
 	glBindVertexArray(0);
+
+	//////////////////////////////////////
+	glBindVertexArray(vao[object::WATEROBJ]);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer[WATER_VERTICES]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(waterVertices), waterVertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(waterVertices[0]), 0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(waterVertices[0]), (GLvoid*)sizeof(waterVertices[0].coords));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(waterVertices[0]), (GLvoid*)(sizeof(waterVertices[0].normal) + sizeof(waterVertices[0].coords)));
+	glEnableVertexAttribArray(2);
+
 }
 
 
@@ -582,8 +614,8 @@ void drawScene(void)
 
 	glUseProgram(programId);
 
-	//unsigned int Loc = glGetUniformLocation(programId, "OBJECT");
-	//glUniform1i(Loc, 0);
+	unsigned int Loc = glGetUniformLocation(programId, "OBJECT");
+	glUniform1i(Loc, 0);
 	glBindVertexArray(vao[TERRAIN]);
 	//For each row - draw the triangle strip
 	for (int i = 0; i < MAP_SIZE - 1; i++)
@@ -591,6 +623,13 @@ void drawScene(void)
 		glDrawElements(GL_TRIANGLE_STRIP, verticesPerStrip, GL_UNSIGNED_INT, terrainIndexData[i]);
 	}
 
+	glUniform1i(Loc, 1);
+
+	glBindVertexArray(vao[object::WATEROBJ]);
+	for (int i = 0; i < MAP_SIZE - 1; i++)
+	{
+		glDrawElements(GL_TRIANGLE_STRIP, verticesPerStrip, GL_UNSIGNED_INT, waterIndexData[i]);
+	}
 
 	glFlush();
 }
@@ -636,8 +675,14 @@ void UpdateGame() {
 	glm::mat4 lol = lookAt(glm::vec3(MAP_SIZE / 2, 10, MAP_SIZE + 10) + CamPos, glm::vec3(MAP_SIZE / 2, 0, MAP_SIZE / 2) + CamPos, cross(glm::normalize(glm::vec3(MAP_SIZE / 2, 10, MAP_SIZE / 2) - CamPos), glm::vec3(1, 0, 0)));
 
 	glUseProgram(programId);
+
+	auto endTime = std::chrono::system_clock::now();
+	auto dist = endTime - startTime;
+	float ti = dist.count() / 1e7f;
 	
-	modelViewMatLoc = glGetUniformLocation(programId, "modelViewMat");
+	unsigned int Loc = glGetUniformLocation(programId, "waterFlowRate");
+	glUniform1f(Loc, ti);
+
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(lol));
 
 	glutPostRedisplay();

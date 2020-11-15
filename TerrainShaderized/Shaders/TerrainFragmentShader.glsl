@@ -9,6 +9,7 @@ in float VertexHeight;
 uniform vec4 globAmb;
 uniform sampler2D grassTex;
 uniform sampler2D sandTex;
+uniform sampler2D waterTex;
 //uniform sampler2D rockTex;
 //uniform sampler2D snowTex;
 
@@ -32,6 +33,7 @@ struct Light
 };
 uniform Material terrainFandB;
 uniform Light light0;
+uniform int OBJECT;
 
 vec3 normal;
 vec3 lightDirection;
@@ -47,21 +49,35 @@ out vec4 colorsOut;
 void main(void)
 {
 
-	heightPercent = (VertexHeight + HEIGHT_MAX) / (HEIGHT_MAX*2);
-
-	if(heightPercent < 0.5){
-	TexColor = texture(sandTex, texCoords);
-	} 
-	else {
-	TexColor = texture(grassTex, texCoords);
-	}
-
 	normal = normalize(normalExport);
 	lightDirection = normalize(vec3(light0.coords));
 	AmbDifCombo = max(dot(normal,lightDirection),0.0f)*(light0.difCols * terrainFandB.difRefl);
 
-	total = TexColor* AmbDifCombo;
-	total.w = 1.0;
+
+	if(OBJECT == 1){
+		TexColor = texture(waterTex, texCoords);
+
+		
+		total = TexColor* AmbDifCombo;
+		total.w = 0.5;
+
+	}else{
+		heightPercent = (VertexHeight + HEIGHT_MAX) / (HEIGHT_MAX*2);
+
+		if(heightPercent < 0.5){
+		TexColor = texture(sandTex, texCoords);
+		} 
+		else {
+		TexColor = texture(grassTex, texCoords);
+		}
+
+		
+		total = TexColor* AmbDifCombo;
+		total.w = 1.0;
+
+	}
+
+
 
 	colorsOut = total;
 }
