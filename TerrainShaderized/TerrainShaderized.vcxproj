@@ -159,12 +159,8 @@
     <ClInclude Include="getbmp.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\CloudFragmentShader.glsl" />
-    <None Include="Shaders\CloudVertexShader).glsl" />
     <None Include="Shaders\TerrainFragmentShader.glsl" />
     <None Include="Shaders\TerrainVertexShader.glsl" />
-    <None Include="Shaders\WaterFragmentShader.glsl" />
-    <None Include="Shaders\WaterVertexShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

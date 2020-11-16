@@ -31,22 +31,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\CloudFragmentShader.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\CloudVertexShader).glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
     <None Include="Shaders\TerrainFragmentShader.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include="Shaders\TerrainVertexShader.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\WaterFragmentShader.glsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="Shaders\WaterVertexShader.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
   </ItemGroup>

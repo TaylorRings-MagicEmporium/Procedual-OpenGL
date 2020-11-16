@@ -95,15 +95,6 @@ static unsigned int
 texture[5],
 TexLoc[5];
 
-//static const Matrix4x4 IDENTITY_MATRIX4x4 =
-//{
-//	{
-//		1.0, 0.0, 0.0, 0.0,
-//		0.0, 1.0, 0.0, 0.0,
-//		0.0, 0.0, 1.0, 0.0,
-//		0.0, 0.0, 0.0, 1.0
-//	}
-//};
 static const vec4 globAmb = vec4(0.2, 0.2, 0.2, 1.0);
 
 static enum buffer { TERRAIN_VERTICES, WATER_VERTICES };
@@ -271,11 +262,9 @@ void shaderCompileTest(GLuint shader) {
 	std::cout << &vertShaderError[0] << std::endl;
 }
 
-// Initialization routine.
-void setup(void)
-{
+void setupVertices(void) {
 	// Initialise terrain - set values in the height map to 0
-	//float terrain[MAP_SIZE][MAP_SIZE] = {};
+//float terrain[MAP_SIZE][MAP_SIZE] = {};
 	for (int x = 0; x < MAP_SIZE; x++)
 	{
 		for (int z = 0; z < MAP_SIZE; z++)
@@ -289,21 +278,21 @@ void setup(void)
 
 	srand(2);
 
-	terrain[0][0] = GetRandom()*HEIGHT_MAX;
-	terrain[0][MAP_SIZE - 1] = GetRandom()* HEIGHT_MAX;
-	terrain[MAP_SIZE - 1][0] = GetRandom()* HEIGHT_MAX;
-	terrain[MAP_SIZE - 1][MAP_SIZE - 1] = GetRandom()* HEIGHT_MAX;
+	terrain[0][0] = GetRandom() * HEIGHT_MAX;
+	terrain[0][MAP_SIZE - 1] = GetRandom() * HEIGHT_MAX;
+	terrain[MAP_SIZE - 1][0] = GetRandom() * HEIGHT_MAX;
+	terrain[MAP_SIZE - 1][MAP_SIZE - 1] = GetRandom() * HEIGHT_MAX;
 
 	int step = MAP_SIZE - 1;
 	while (step > 1) {
-		for (int x = 0; x < MAP_SIZE-1; x += step) {
-			for (int y = 0; y < MAP_SIZE-1; y += step) {
+		for (int x = 0; x < MAP_SIZE - 1; x += step) {
+			for (int y = 0; y < MAP_SIZE - 1; y += step) {
 				Diamond_step(x, y, step);
 			}
 		}
 
-		for (int x = 0; x < MAP_SIZE-1; x += step) {
-			for (int y = 0; y < MAP_SIZE-1; y += step) {
+		for (int x = 0; x < MAP_SIZE - 1; x += step) {
+			for (int y = 0; y < MAP_SIZE - 1; y += step) {
 				//std::cout << x << ", " << y << std::endl;
 				Square_step(x, y, step);
 			}
@@ -314,7 +303,7 @@ void setup(void)
 		//std::cout << "AFTER: " << step << std::endl;
 		RANDOM_MAX *= 0.5f;
 	}
-	
+
 	// Intialise vertex array
 	int i = 0;
 
@@ -344,7 +333,7 @@ void setup(void)
 				vec2((1.0f / (float(MAP_SIZE) - 1)) * x, (1.0f / (float(MAP_SIZE) - 1)) * z)
 			};
 
-			std::cout << (1.0f / (float(MAP_SIZE)-1)) * (x) << ", " << (1.0f / (float(MAP_SIZE)-1)) * (z) << std::endl;
+			//std::cout << (1.0f / (float(MAP_SIZE)-1)) * (x) << ", " << (1.0f / (float(MAP_SIZE)-1)) * (z) << std::endl;
 			i++;
 		}
 	}
@@ -389,8 +378,8 @@ void setup(void)
 	for (int z = 0; z < MAP_SIZE - 1; z++) {
 		for (int x = 0; x < (MAP_SIZE * 2 - 2); x++) {
 			index1 = terrainIndexData[z][x];
-			index2 = terrainIndexData[z][x+1];
-			index3 = terrainIndexData[z][x+2];
+			index2 = terrainIndexData[z][x + 1];
+			index3 = terrainIndexData[z][x + 2];
 
 			p1 = vec3(terrainVertices[index1].coords);
 			p2 = vec3(terrainVertices[index2].coords);
@@ -426,7 +415,7 @@ void setup(void)
 	for (int i = 0; i < (MAP_SIZE * MAP_SIZE) - 1; i++) {
 		terrainVertices->normal = normalize(terrainVertices->normal);
 	}
-	
+
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 
 	// Create shader program executable - read, compile and link shaders
@@ -452,10 +441,9 @@ void setup(void)
 	glDeleteShader(vertexShaderId);
 	glDeleteShader(fragmentShaderId);
 
-	///////////////////////////////////////
+}
 
-	// Create vertex array object (VAO) and vertex buffer object (VBO) and associate data with vertex shader.
-
+void setupVAOs(void) {
 	glUseProgram(programId);
 
 	glGenVertexArrays(2, vao);
@@ -475,7 +463,7 @@ void setup(void)
 
 	// Obtain projection matrix uniform location and set value.
 	projMatLoc = glGetUniformLocation(programId, "projMat");
-	projMat = perspective(radians(60.0), (double) SCREEN_WIDTH / (double)SCREEN_HEIGHT, 0.1, 100.0);
+	projMat = perspective(radians(60.0), (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT, 0.1, 100.0);
 	glUniformMatrix4fv(projMatLoc, 1, GL_FALSE, value_ptr(projMat));
 
 	///////////////////////////////////////
@@ -484,7 +472,7 @@ void setup(void)
 	mat4 modelViewMat = mat4(1.0);
 	// Move terrain into view - glm::translate replaces glTranslatef
 	modelViewMat = translate(modelViewMat, CamPos); // 5x5 grid
-	glm::mat4 lol = lookAt(glm::vec3(MAP_SIZE/2,10,MAP_SIZE + 10), glm::vec3(MAP_SIZE/2,0,MAP_SIZE/2), cross(glm::normalize(glm::vec3(MAP_SIZE/2,0,MAP_SIZE/2) - CamPos), glm::vec3(1, 0, 0)));
+	glm::mat4 lol = lookAt(glm::vec3(MAP_SIZE / 2, 10, MAP_SIZE + 10), glm::vec3(MAP_SIZE / 2, 0, MAP_SIZE / 2), cross(glm::normalize(glm::vec3(MAP_SIZE / 2, 0, MAP_SIZE / 2) - CamPos), glm::vec3(1, 0, 0)));
 	//glm::mat4 lol = lookAt(glm::vec3(0,0,0), glm::vec3(MAP_SIZE / 2, 0, MAP_SIZE / 2), cross(glm::normalize(glm::vec3(MAP_SIZE / 2, 0, MAP_SIZE / 2) - CamPos), glm::vec3(1, 0, 0)));
 	modelViewMatLoc = glGetUniformLocation(programId, "modelViewMat");
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(lol));
@@ -517,71 +505,6 @@ void setup(void)
 	unsigned int Loc = glGetUniformLocation(programId, "HEIGHT_MAX");
 	glUniform1f(Loc, HEIGHT_MAX);
 
-	///////////////////////////////////////
-
-	//load textures
-	image[GRASS] = getbmp("Textures/grass.bmp");
-
-	glGenTextures(5, texture);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture[GRASS]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[GRASS]->sizeX, image[GRASS]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[GRASS]->data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	TexLoc[GRASS] = glGetUniformLocation(programId, "grassTex");
-	glUniform1i(TexLoc[GRASS], 0);
-
-	//glBindTexture(GL_TEXTURE_2D, 0);
-	//////////////////////////////////////
-
-	image[SAND] = getbmp("Textures/sand.bmp");
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texture[SAND]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[SAND]->sizeX, image[SAND]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[SAND]->data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	TexLoc[SAND] = glGetUniformLocation(programId, "sandTex");
-	glUniform1i(TexLoc[SAND], 1);
-
-	image[WATER] = getbmp("Textures/water.bmp");
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, texture[WATER]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[WATER]->sizeX, image[WATER]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[WATER]->data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-
-	TexLoc[WATER] = glGetUniformLocation(programId, "waterTex");
-	glUniform1i(TexLoc[WATER], 2);
-
-	//////////////////////////////////////
 
 	glBindVertexArray(0);
 
@@ -596,6 +519,119 @@ void setup(void)
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(waterVertices[0]), (GLvoid*)(sizeof(waterVertices[0].normal) + sizeof(waterVertices[0].coords)));
 	glEnableVertexAttribArray(2);
+}
+
+void SetImages(void) {
+	image[GRASS] = getbmp("Textures/grass.bmp");
+
+	glGenTextures(5, texture);
+	glActiveTexture(GL_TEXTURE0 + GRASS);
+	glBindTexture(GL_TEXTURE_2D, texture[GRASS]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[GRASS]->sizeX, image[GRASS]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[GRASS]->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	TexLoc[GRASS] = glGetUniformLocation(programId, "grassTex");
+	glUniform1i(TexLoc[GRASS], GRASS);
+
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	//////////////////////////////////////
+
+	image[SAND] = getbmp("Textures/sand.bmp");
+
+	glActiveTexture(GL_TEXTURE0 + SAND);
+	glBindTexture(GL_TEXTURE_2D, texture[SAND]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[SAND]->sizeX, image[SAND]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[SAND]->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	TexLoc[SAND] = glGetUniformLocation(programId, "sandTex");
+	glUniform1i(TexLoc[SAND], SAND);
+
+	////////////////////////////////////
+	image[ROCK] = getbmp("Textures/rock.bmp");
+
+	glActiveTexture(GL_TEXTURE0 + ROCK);
+	glBindTexture(GL_TEXTURE_2D, texture[ROCK]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[ROCK]->sizeX, image[ROCK]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[ROCK]->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	TexLoc[ROCK] = glGetUniformLocation(programId, "rockTex");
+	glUniform1i(TexLoc[ROCK], ROCK);
+
+	////////////////////////////////////
+	image[SNOW] = getbmp("Textures/snow.bmp");
+
+	glActiveTexture(GL_TEXTURE0 + SNOW);
+	glBindTexture(GL_TEXTURE_2D, texture[SNOW]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[SNOW]->sizeX, image[SNOW]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[SNOW]->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	TexLoc[SNOW] = glGetUniformLocation(programId, "snowTex");
+	glUniform1i(TexLoc[SNOW], SNOW);
+
+
+	////////////////////////////////////
+	image[WATER] = getbmp("Textures/water.bmp");
+
+	glActiveTexture(GL_TEXTURE0 + WATER);
+	glBindTexture(GL_TEXTURE_2D, texture[WATER]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image[WATER]->sizeX, image[WATER]->sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, image[WATER]->data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//?
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//?
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	TexLoc[WATER] = glGetUniformLocation(programId, "waterTex");
+	glUniform1i(TexLoc[WATER], WATER);
+}
+
+// Initialization routine.
+void setup(void)
+{
+	setupVertices();
+	setupVAOs();
+	SetImages();
 
 }
 
