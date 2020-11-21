@@ -76,7 +76,7 @@ void setup(void)
 	skybox->SetCamera(projMat, camera->modelView);
 
 	trees->Setup();
-	trees->SetCamera(projMat, glm::scale(camera->modelView,glm::vec3(0.05,0.05,0.05)));
+	trees->SetCamera(projMat, camera->modelView);
 
 }
 
@@ -154,7 +154,7 @@ void UpdateGame() {
 	terrain->SetCamera(projMat, camera->modelView);
 	water->SetCamera(projMat, camera->modelView);
 	skybox->SetCamera(projMat, camera->modelView);
-	trees->SetCamera(projMat, glm::scale(camera->modelView, glm::vec3(0.05, 0.05, 0.05)));
+	trees->SetCamera(projMat, camera->modelView);
 	
 	terrain->Update();
 	water->Update();

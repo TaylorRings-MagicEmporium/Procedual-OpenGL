@@ -19,6 +19,8 @@ private:
 		leafVBO,
 	objectLoc;
 
+	std::vector<glm::vec3> positions;
+
 	//const int NUMPOINTS = 1000;
 	const int MAXLEVEL = 6;
 	const float R = 0.85;
@@ -27,12 +29,13 @@ private:
 	TVertex LeafVertices[NUMPOINTS] = {};
 public:
 	Trees() {};
-	void ComputeSingleBranch(float angle, float x0, float y0, float x1, float y1, float& x, float& y);
-	void RecurComputeBranch(int depth, int index, float angle, std::vector<glm::vec2> basePts, vector<glm::vec2> BrPts);
+	void ComputeSingleBranch(int depth, float angle, glm::vec3 start, glm::vec3 end, glm::vec3& returnData);
+	void RecurComputeBranch(int depth, int index, float angle, std::vector<glm::vec3> basePts, vector<glm::vec3> BrPts);
 	void Setup();
 	void Close();
 	void Update();
 	void Draw();
+	void SetupPosition();
 	void CreateVAOVBO();
 
 };

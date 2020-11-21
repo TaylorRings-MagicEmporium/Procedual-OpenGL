@@ -46,6 +46,8 @@ protected:
 		buffer,
 		vao;
 
+	glm::mat4 modelView;
+
 public:
 	virtual void Setup() = 0;
 	virtual void Close() = 0;

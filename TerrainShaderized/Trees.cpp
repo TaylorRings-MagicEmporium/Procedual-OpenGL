@@ -1,23 +1,42 @@
 #include "Trees.h"
 
-void Trees::ComputeSingleBranch(float angle, float x0, float y0, float x1, float y1, float &x, float &y) {
-	float xs, ys, xl, yl;
+void Trees::ComputeSingleBranch(int depth, float angle, glm::vec3 start, glm::vec3 end, glm::vec3& returnData) {
+	glm::vec3 s,ll,l;
+	float m;
+	double val;
 
-	xs = (x1 - x0) * R; //R is the length factor for branches
-	ys = (y1 - y0) * R;
 
-	xl = cos(angle / 2.0) * xs - sin(angle / 2.0) * ys;
-	yl = sin(angle / 2.0) * xs + cos(angle / 2.0) * ys;
+	s.x = (end.x - start.x) * R; //R is the length factor for branches
+	s.y = (end.y - start.y) * R;
+	s.z = (end.z - start.z) * R;
+	
+	//m = glm::sqrt(s.x * s.x + s.y * s.y + s.z * s.z);
 
-	x = x1 + xl;
-	y = y1 + yl;
+	ll.x = cos(angle / 2.0) * s.x - sin(angle / 2.0) * s.y;
+	ll.y = sin(angle / 2.0) * s.x + cos(angle / 2.0) * s.y;
+	ll.z = 0.0;
+
+	if (depth % 2 == 0) {
+		val = -2;
+	}
+	else {
+		val = 2;
+	}
+
+	l.x = cos(val * angle / 2.0) * ll.x - sin(val * angle / 2.0) * ll.z;
+	l.y = ll.y;
+	l.z = cos(val * angle / 2.0) * ll.x + sin(val * angle / 2.0) * ll.z;
+
+	returnData.x = end.x + l.x;
+	returnData.y = end.y + l.y;
+	returnData.z = end.z + l.z;
 }
 
-void Trees::RecurComputeBranch(int depth, int index, float angle, std::vector<glm::vec2> basePts, vector<glm::vec2> BrPts) {
+void Trees::RecurComputeBranch(int depth, int index, float angle, std::vector<glm::vec3> basePts, vector<glm::vec3> BrPts) {
 	int i, size;
-	float x2, y2;
-	glm::vec2 ttPt;
-	vector<glm::vec2> NewBasePts, NewBrPts;
+	glm::vec3 returnedData;
+	glm::vec3 ttPt;
+	vector<glm::vec3> NewBasePts, NewBrPts;
 
 	if (depth > MAXLEVEL) return;
 
@@ -26,24 +45,24 @@ void Trees::RecurComputeBranch(int depth, int index, float angle, std::vector<gl
 	std::cout << index << std::endl;
 	for (i = 0; i < size; i++)
 	{
-		ComputeSingleBranch(angle, basePts[i].x,basePts[i].y, BrPts[i].x, BrPts[i].y, x2, y2);
-		TrunkVertices[index].coords[0] = x2;
-		TrunkVertices[index].coords[1] = y2;
-		TrunkVertices[index].coords[2] = 0.0;
+		ComputeSingleBranch(depth, angle, glm::vec3(basePts[i].x,basePts[i].y,basePts[i].z), glm::vec3(BrPts[i].x, BrPts[i].y, BrPts[i].z), returnedData);
+		TrunkVertices[index].coords[0] = returnedData.x;
+		TrunkVertices[index].coords[1] = returnedData.y;
+		TrunkVertices[index].coords[2] = returnedData.z;
 		TrunkVertices[index].coords[3] = 1.0;
 		index++;
 		NewBasePts.push_back(BrPts[i]);
-		ttPt.x = x2; ttPt.y = y2;
+		ttPt.x = returnedData.x; ttPt.y = returnedData.y;
 		NewBrPts.push_back(ttPt);
 
-		ComputeSingleBranch(-angle, basePts[i].x, basePts[i].y, BrPts[i].x, BrPts[i].y, x2, y2);
-		TrunkVertices[index].coords[0] = x2;
-		TrunkVertices[index].coords[1] = y2;
-		TrunkVertices[index].coords[2] = 0.0;
+		ComputeSingleBranch(depth, -angle, glm::vec3(basePts[i].x, basePts[i].y, basePts[i].z), glm::vec3(BrPts[i].x, BrPts[i].y, BrPts[i].z), returnedData);
+		TrunkVertices[index].coords[0] = returnedData.x;
+		TrunkVertices[index].coords[1] = returnedData.y;
+		TrunkVertices[index].coords[2] = returnedData.z;
 		TrunkVertices[index].coords[3] = 1.0;
 		index++;
 		NewBasePts.push_back(BrPts[i]);
-		ttPt.x = x2; ttPt.y = y2;
+		ttPt.x = returnedData.x; ttPt.y = returnedData.y;
 		NewBrPts.push_back(ttPt);
 	}
 
@@ -57,9 +76,9 @@ void Trees::Setup()
 {
 	int i, count;
 	float x0, y0, x1, y1, x2, y2, xs, ys, xl, yl, angle;
-	angle = 65 * 3.1415926 / 180.0;
-	glm::vec2 ttPt;
-	std::vector<glm::vec2> BasePts, BranchPts;
+	angle = 40.0 * 3.1415926 / 180.0;
+	glm::vec3 ttPt;
+	std::vector<glm::vec3> BasePts, BranchPts;
 
 	for (i = 0; i < NUMPOINTS; i++) {
 		//TrunkVertices[i].normal = glm::vec3(0, 1, 0);
@@ -77,14 +96,16 @@ void Trees::Setup()
 	TrunkVertices[0].coords[3] = 1.0;
 	ttPt.x = TrunkVertices[0].coords[0];
 	ttPt.y = TrunkVertices[0].coords[1];
+	ttPt.z = TrunkVertices[0].coords[2];
 	BasePts.push_back(ttPt);
 
 	TrunkVertices[1].coords[0] = 0.0;
-	TrunkVertices[1].coords[1] = 15.0;
+	TrunkVertices[1].coords[1] = 15;
 	TrunkVertices[1].coords[2] = 0.0;
 	TrunkVertices[1].coords[3] = 1.0;
 	ttPt.x = TrunkVertices[1].coords[0];
 	ttPt.y = TrunkVertices[1].coords[1];
+	ttPt.z = TrunkVertices[1].coords[2];
 	BranchPts.push_back(ttPt);
 
 	//compute the rest of the branches
@@ -105,41 +126,42 @@ void Trees::Setup()
 	for (i = totalPts; i > (totalPts - leafPts); i--) {
 		ttPt.x = TrunkVertices[i].coords[0];
 		ttPt.y = TrunkVertices[i].coords[1];
+		ttPt.z = TrunkVertices[i].coords[2];
 
 		LeafVertices[count].coords[0] = ttPt.x;
 		LeafVertices[count].coords[1] = ttPt.y;
-		LeafVertices[count].coords[2] = 0.0;
+		LeafVertices[count].coords[2] = ttPt.z;
 		LeafVertices[count].coords[3] = 1.0;
 		count++;
 
 		LeafVertices[count].coords[0] = ttPt.x + 1.732;
 		LeafVertices[count].coords[1] = ttPt.y + 1;
-		LeafVertices[count].coords[2] = 0.0;
+		LeafVertices[count].coords[2] = ttPt.z;
 		LeafVertices[count].coords[3] = 1.0;
 		count++;
 
 		LeafVertices[count].coords[0] = ttPt.x + 1;
 		LeafVertices[count].coords[1] = ttPt.y + 1.732;
-		LeafVertices[count].coords[2] = 0.0;
+		LeafVertices[count].coords[2] = ttPt.z;
 		LeafVertices[count].coords[3] = 1.0;
 		count++;
 
 		////second one
 		LeafVertices[count].coords[0] = ttPt.x + 1.732;
 		LeafVertices[count].coords[1] = ttPt.y + 1;
-		LeafVertices[count].coords[2] = 0.0;
+		LeafVertices[count].coords[2] = ttPt.z;
 		LeafVertices[count].coords[3] = 1.0;
 		count++;
 
 		LeafVertices[count].coords[0] = ttPt.x + 1;
 		LeafVertices[count].coords[1] = ttPt.y + 1.732;
-		LeafVertices[count].coords[2] = 0.0;
+		LeafVertices[count].coords[2] = ttPt.z;
 		LeafVertices[count].coords[3] = 1.0;
 		count++;
 
 		LeafVertices[count].coords[0] = ttPt.x + 2.732;
 		LeafVertices[count].coords[1] = ttPt.y + 2.732;
-		LeafVertices[count].coords[2] = 0.0;
+		LeafVertices[count].coords[2] = ttPt.z;
 		LeafVertices[count].coords[3] = 1.0;
 		count++;
 	}
@@ -147,6 +169,7 @@ void Trees::Setup()
 	CreateShader("Shaders/TreeVertexShader.glsl", "Shaders/TreeFragmentShader.glsl");
 	CreateVAOVBO();
 	objectLoc = glGetUniformLocation(programID, "object");
+	SetupPosition();
 }
 
 void Trees::Close()
@@ -191,29 +214,57 @@ void Trees::Draw()
 		ttArr.clear();
 	}
 
-	glUniform1ui(objectLoc, TRUNK);
-	glBindVertexArray(vao);
+	glm::uint L1[2], L2[6], L3[14], L4[30], L5[62], L6[BRANCH_INDEX_COUNT - 62];
+	memcpy(L1, branchIndexData, 2 * sizeof(glm::uint));
+	memcpy(L2, branchIndexData, 6 * sizeof(glm::uint));
+	memcpy(L3, branchIndexData, 14 * sizeof(glm::uint));
+	memcpy(L4, branchIndexData, 30 * sizeof(glm::uint));
+	memcpy(L5, branchIndexData, 62 * sizeof(glm::uint));
+	memcpy(L6, branchIndexData, (BRANCH_INDEX_COUNT - 62) * sizeof(glm::uint));
+
+	for (int i = 0; i < positions.size(); i++) {
+		glUniform1ui(objectLoc, TRUNK);
+		glBindVertexArray(vao);
+
+		glm::mat4 temp = glm::mat4(1);
+		//temp = modelView;
+		temp = glm::translate(modelView, positions[i]);
+		temp = glm::scale(temp, glm::vec3(0.05, 0.05, 0.05));
+		unsigned int modelViewMatLoc = glGetUniformLocation(programID, "modelViewMat");
+		glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(temp));
 
 
-	glLineWidth(0.5f);
-	glDrawElements(GL_LINES, BRANCH_INDEX_COUNT, GL_UNSIGNED_INT, branchIndexData);
-	glLineWidth(5.0f);
-	glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2, GL_UNSIGNED_INT, branchIndexData);
-	glLineWidth(4.0f);
-	glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2 + 4, GL_UNSIGNED_INT, branchIndexData);
-	glLineWidth(3.0f);
-	glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 6 + 8, GL_UNSIGNED_INT, branchIndexData);
-	glLineWidth(2.0f);
-	glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 14 + 16, GL_UNSIGNED_INT, branchIndexData);
-	glLineWidth(1.0f);
-	glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 30 + 32, GL_UNSIGNED_INT, branchIndexData);
+		
+		//glLineWidth(1.0f);
+		//glDrawElements(GL_LINES, BRANCH_INDEX_COUNT, GL_UNSIGNED_INT, branchIndexData);
+		glLineWidth(10.0f);
+		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2, GL_UNSIGNED_INT, branchIndexData);
+		glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, L1);
+		glLineWidth(8.0f);
+		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2 + 4, GL_UNSIGNED_INT, branchIndexData);
+		glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, L2);
+		glLineWidth(6.0f);
+		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 6 + 8, GL_UNSIGNED_INT, branchIndexData);
+		glDrawElements(GL_LINES, 14, GL_UNSIGNED_INT, L3);
+		glLineWidth(4.0f);
+		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 14 + 16, GL_UNSIGNED_INT, branchIndexData);
+		glDrawElements(GL_LINES, 30, GL_UNSIGNED_INT, L4);
+		glLineWidth(2.0f);
+		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 30 + 32, GL_UNSIGNED_INT, branchIndexData);
+		glDrawElements(GL_LINES, 62, GL_UNSIGNED_INT, L5);
+		glLineWidth(1.0f);
+		glDrawElements(GL_LINES, BRANCH_INDEX_COUNT - 62, GL_UNSIGNED_INT, L6);
 
-	int leafNum, leafVerNum;
-	leafNum = pow(2, MAXLEVEL - 1);
-	leafVerNum = leafNum * 6;
-	glUniform1ui(objectLoc, LEAF); // Draw Trunk
-	glBindVertexArray(leafVAO);
-	glDrawArrays(GL_TRIANGLES, 0, leafVerNum); //leafVerNum
+		int leafNum, leafVerNum;
+		leafNum = pow(2, MAXLEVEL - 1);
+		leafVerNum = leafNum * 6;
+		glUniform1ui(objectLoc, LEAF); // Draw Trunk
+		glBindVertexArray(leafVAO);
+		glDrawArrays(GL_TRIANGLES, 0, leafVerNum); //leafVerNum
+	}
+
+
+
 }
 
 void Trees::CreateVAOVBO()
@@ -241,4 +292,10 @@ void Trees::CreateVAOVBO()
 	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(LeafVertices[0]), (GLvoid*)sizeof(LeafVertices[0].coords));
 	glEnableVertexAttribArray(3);
 
+}
+
+void Trees::SetupPosition() {
+	for (int i = 0; i < 100; i++) {
+		positions.push_back(glm::vec3(rand() % MAP_SIZE, 0, rand() % MAP_SIZE));
+	}
 }

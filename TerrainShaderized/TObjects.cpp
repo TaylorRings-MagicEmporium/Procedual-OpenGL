@@ -67,6 +67,7 @@ void TObjects::SetCamera(glm::mat4 projMat, glm::mat4 modelView) {
 	glm::mat3 normalMat = glm::transpose(glm::inverse(glm::mat3(modelView)));
 	glUniformMatrix3fv(normalMatLoc, 1, GL_FALSE, value_ptr(normalMat));
 
+	this->modelView = modelView;
 	glUseProgram(0);
 }
 
