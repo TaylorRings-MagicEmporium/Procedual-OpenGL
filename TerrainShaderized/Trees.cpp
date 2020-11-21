@@ -167,9 +167,10 @@ void Trees::Setup()
 	}
 
 	CreateShader("Shaders/TreeVertexShader.glsl", "Shaders/TreeFragmentShader.glsl");
+	SetupPosition();
 	CreateVAOVBO();
 	objectLoc = glGetUniformLocation(programID, "object");
-	SetupPosition();
+
 }
 
 void Trees::Close()
@@ -222,47 +223,55 @@ void Trees::Draw()
 	memcpy(L5, branchIndexData, 62 * sizeof(glm::uint));
 	memcpy(L6, branchIndexData, (BRANCH_INDEX_COUNT - 62) * sizeof(glm::uint));
 
-	for (int i = 0; i < positions.size(); i++) {
-		glUniform1ui(objectLoc, TRUNK);
-		glBindVertexArray(vao);
+	glUniform1ui(objectLoc, TRUNK);
+	glBindVertexArray(vao);
 
-		glm::mat4 temp = glm::mat4(1);
-		//temp = modelView;
-		temp = glm::translate(modelView, positions[i]);
-		temp = glm::scale(temp, glm::vec3(0.05, 0.05, 0.05));
-		unsigned int modelViewMatLoc = glGetUniformLocation(programID, "modelViewMat");
-		glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(temp));
+	glm::mat4 temp = glm::mat4(1);
+	//temp = glm::scale(modelView, glm::vec3(0.05, 0.05, 0.05));
+
+	unsigned int modelViewMatLoc = glGetUniformLocation(programID, "modelViewMat");
+	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(modelView));
 
 
-		
-		//glLineWidth(1.0f);
-		//glDrawElements(GL_LINES, BRANCH_INDEX_COUNT, GL_UNSIGNED_INT, branchIndexData);
-		glLineWidth(10.0f);
-		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2, GL_UNSIGNED_INT, branchIndexData);
-		glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, L1);
-		glLineWidth(8.0f);
-		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2 + 4, GL_UNSIGNED_INT, branchIndexData);
-		glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, L2);
-		glLineWidth(6.0f);
-		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 6 + 8, GL_UNSIGNED_INT, branchIndexData);
-		glDrawElements(GL_LINES, 14, GL_UNSIGNED_INT, L3);
-		glLineWidth(4.0f);
-		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 14 + 16, GL_UNSIGNED_INT, branchIndexData);
-		glDrawElements(GL_LINES, 30, GL_UNSIGNED_INT, L4);
-		glLineWidth(2.0f);
-		//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 30 + 32, GL_UNSIGNED_INT, branchIndexData);
-		glDrawElements(GL_LINES, 62, GL_UNSIGNED_INT, L5);
-		glLineWidth(1.0f);
-		glDrawElements(GL_LINES, BRANCH_INDEX_COUNT - 62, GL_UNSIGNED_INT, L6);
+	//glLineWidth(1.0f);
+//glDrawElements(GL_LINES, BRANCH_INDEX_COUNT, GL_UNSIGNED_INT, branchIndexData);
+	glLineWidth(10.0f);
+	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2, GL_UNSIGNED_INT, branchIndexData);
+	//glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, L1);
+	glDrawElementsInstanced(GL_LINES, 2, GL_UNSIGNED_INT, L1, 1000);
+	glLineWidth(8.0f);
+	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2 + 4, GL_UNSIGNED_INT, branchIndexData);
+	//glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, L2);
+	glDrawElementsInstanced(GL_LINES, 6, GL_UNSIGNED_INT, L2, 1000);
+	glLineWidth(6.0f);
+	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 6 + 8, GL_UNSIGNED_INT, branchIndexData);
+	//glDrawElements(GL_LINES, 14, GL_UNSIGNED_INT, L3);
+	glDrawElementsInstanced(GL_LINES, 14, GL_UNSIGNED_INT, L3, 1000);
+	glLineWidth(4.0f);
+	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 14 + 16, GL_UNSIGNED_INT, branchIndexData);
+	//glDrawElements(GL_LINES, 30, GL_UNSIGNED_INT, L4);
+	glDrawElementsInstanced(GL_LINES, 30, GL_UNSIGNED_INT, L4, 1000);
+	glLineWidth(2.0f);
+	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 30 + 32, GL_UNSIGNED_INT, branchIndexData);
+	//glDrawElements(GL_LINES, 62, GL_UNSIGNED_INT, L5);
+	glDrawElementsInstanced(GL_LINES, 62, GL_UNSIGNED_INT, L5, 1000);
+	glLineWidth(1.0f);
+	////glDrawElements(GL_LINES, BRANCH_INDEX_COUNT - 62, GL_UNSIGNED_INT, L6);
+	glDrawElementsInstanced(GL_LINES, BRANCH_INDEX_COUNT - 62, GL_UNSIGNED_INT, L6, 1000);
 
-		int leafNum, leafVerNum;
-		leafNum = pow(2, MAXLEVEL - 1);
-		leafVerNum = leafNum * 6;
-		glUniform1ui(objectLoc, LEAF); // Draw Trunk
-		glBindVertexArray(leafVAO);
-		glDrawArrays(GL_TRIANGLES, 0, leafVerNum); //leafVerNum
-	}
+	glUniform1ui(objectLoc, LEAF);
+	glBindVertexArray(leafVAO);
 
+	//temp = modelView;
+	//temp = glm::translate(modelView, glm::vec3(positions[i]));
+	//temp = glm::scale(temp, glm::vec3(0.05, 0.05, 0.05));
+
+	int leafNum, leafVerNum;
+	leafNum = pow(2, MAXLEVEL - 1);
+	leafVerNum = leafNum * 6;
+	glUniform1ui(objectLoc, LEAF); // Draw Trunk
+	glBindVertexArray(leafVAO);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, leafVerNum,1000); //leafVerNum
 
 
 }
@@ -272,9 +281,12 @@ void Trees::CreateVAOVBO()
 	glUseProgram(programID);
 	glGenVertexArrays(1, &vao);
 	glGenVertexArrays(1, &leafVAO);
+	
 
 	glGenBuffers(1, &buffer);
 	glGenBuffers(1, &leafVBO);
+	glGenBuffers(1, &instanceVBO);
+
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -284,6 +296,15 @@ void Trees::CreateVAOVBO()
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(TrunkVertices[0]), (GLvoid*)sizeof(TrunkVertices[0].coords));
 	glEnableVertexAttribArray(1);
 
+
+	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(positions[0]), (void*)0);
+	glEnableVertexAttribArray(4);
+	glVertexAttribDivisor(4, 1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
 	glBindVertexArray(leafVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, leafVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(LeafVertices), LeafVertices, GL_STATIC_DRAW);
@@ -292,10 +313,18 @@ void Trees::CreateVAOVBO()
 	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(LeafVertices[0]), (GLvoid*)sizeof(LeafVertices[0].coords));
 	glEnableVertexAttribArray(3);
 
+	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(positions[0]), (void*)0);
+	glEnableVertexAttribArray(4);
+	glVertexAttribDivisor(4, 1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
 }
 
 void Trees::SetupPosition() {
-	for (int i = 0; i < 100; i++) {
-		positions.push_back(glm::vec3(rand() % MAP_SIZE, 0, rand() % MAP_SIZE));
+	for (int i = 0; i < 1000; i++) {
+		positions[i] = glm::vec4(rand() % MAP_SIZE, 0, rand() % MAP_SIZE,1.0);
 	}
 }

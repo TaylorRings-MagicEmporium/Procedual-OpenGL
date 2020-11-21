@@ -17,9 +17,10 @@ class Trees : public TObjects
 private:
 	unsigned int leafVAO,
 		leafVBO,
+		instanceVBO,
 	objectLoc;
 
-	std::vector<glm::vec3> positions;
+	glm::vec4 positions[1000];
 
 	//const int NUMPOINTS = 1000;
 	const int MAXLEVEL = 6;
