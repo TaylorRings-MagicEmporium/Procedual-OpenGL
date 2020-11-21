@@ -1,15 +1,11 @@
 #version 420 core
 
-#define TERRAIN 0
-#define WATER 1
-
 in vec3 normalExport;
 in vec2 texCoords;
 in float VertexHeight;
 uniform vec4 globAmb;
 uniform sampler2D grassTex;
 uniform sampler2D sandTex;
-uniform sampler2D waterTex;
 uniform sampler2D rockTex;
 uniform sampler2D snowTex;
 
@@ -33,7 +29,7 @@ struct Light
 };
 uniform Material terrainFandB;
 uniform Light light0;
-uniform int OBJECT;
+int OBJECT = 0;
 
 vec3 normal;
 vec3 lightDirection;
@@ -54,54 +50,36 @@ void main(void)
 	AmbDifCombo = max(dot(normal,lightDirection),0.0f)*(light0.difCols * terrainFandB.difRefl);
 
 
-	if(OBJECT == 1){
-		TexColor = texture(waterTex, texCoords);
+	heightPercent = (VertexHeight + HEIGHT_MAX) / (HEIGHT_MAX*2);
 
-		
-		total = TexColor* AmbDifCombo;
-		total.w = 0.5;
-
-	}else{
-		heightPercent = (VertexHeight + HEIGHT_MAX) / (HEIGHT_MAX*2);
-
-//		if(heightPercent < 0.5){
-//		TexColor = texture(sandTex, texCoords);
-//		} 
-//		else {
-//		TexColor = texture(grassTex, texCoords);
-//		}
-
-
-			if(heightPercent <= 0.3){
-				TexColor = texture(sandTex, texCoords);
-			}
-			else if(heightPercent <= 0.35) {
-				tempTexColor = texture(sandTex,texCoords);
-				TexColor = tempTexColor + (texture(grassTex,texCoords) - tempTexColor) * ((heightPercent - 0.3)/0.05);
-			}
-			else if(heightPercent <= 0.55){
-				TexColor = texture(grassTex, texCoords);
-			}
-			else if(heightPercent <= 0.6){
-				tempTexColor = texture(grassTex,texCoords);
-				TexColor = tempTexColor + (texture(rockTex,texCoords) - tempTexColor) * ((heightPercent - 0.55)/0.05);
-			}
-			else if(heightPercent <= 0.8){
-				TexColor = texture(rockTex, texCoords);
-			}
-			else if(heightPercent <= 0.85){
-				tempTexColor = texture(rockTex,texCoords);
-				TexColor = tempTexColor + (texture(snowTex,texCoords) - tempTexColor) * ((heightPercent - 0.8)/0.05);
-			}
-			else{
-				TexColor = texture(snowTex, texCoords);
-			}
-
-		
-		total = TexColor* AmbDifCombo;
-		total.w = 1.0;
-
+	if(heightPercent <= 0.3){
+		TexColor = texture(sandTex, texCoords);
 	}
+	else if(heightPercent <= 0.35) {
+		tempTexColor = texture(sandTex,texCoords);
+		TexColor = tempTexColor + (texture(grassTex,texCoords) - tempTexColor) * ((heightPercent - 0.3)/0.05);
+	}
+	else if(heightPercent <= 0.55){
+		TexColor = texture(grassTex, texCoords);
+	}
+	else if(heightPercent <= 0.6){
+		tempTexColor = texture(grassTex,texCoords);
+		TexColor = tempTexColor + (texture(rockTex,texCoords) - tempTexColor) * ((heightPercent - 0.55)/0.05);
+	}
+	else if(heightPercent <= 0.8){
+		TexColor = texture(rockTex, texCoords);
+	}
+	else if(heightPercent <= 0.85){
+		tempTexColor = texture(rockTex,texCoords);
+		TexColor = tempTexColor + (texture(snowTex,texCoords) - tempTexColor) * ((heightPercent - 0.8)/0.05);
+	}
+	else{
+		TexColor = texture(snowTex, texCoords);
+	}
+
+		
+	total = TexColor* AmbDifCombo;
+	total.w = 1.0;
 
 
 

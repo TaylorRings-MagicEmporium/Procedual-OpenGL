@@ -2,10 +2,11 @@
 
 in vec3 normalExport;
 in vec2 texCoords;
+in float VertexHeight;
 uniform vec4 globAmb;
-
 uniform sampler2D waterTex;
 
+uniform float HEIGHT_MAX;
 
 struct Material
 {
@@ -30,19 +31,29 @@ vec3 normal;
 vec3 lightDirection;
 vec4 AmbDifCombo;
 vec4 TexColor;
-vec4 final;
+vec4 tempTexColor;
+vec4 total;
 
+float heightPercent;
+float adjust = 0.3;
 out vec4 colorsOut;
 
 void main(void)
 {
+
+	normal = normalize(normalExport);
+	lightDirection = normalize(vec3(light0.coords));
+	AmbDifCombo = max(dot(normal,lightDirection),0.0f)*(light0.difCols * terrainFandB.difRefl);
+
+
+	TexColor = texture(waterTex, texCoords);
+		
+	total = TexColor* AmbDifCombo;
+	total.w = 0.5;
+
 	
 
-    normal = normalize(normalExport);
-    lightDirection = normalize(vec3(light0.coords));
-    TexColor = texture(waterTex, texCoords);
-    AmbDifCombo = max(dot(normal,lightDirection),0.0f)*(light0.difCols * terrainFandB.difRefl);
-	final = TexColor * AmbDifCombo;
-    colorsOut = vec4(final.x,final.y,final.z,0.5);
-	//colorsOut = AmbDifCombo;
+
+	colorsOut = total;
+	//colorsOut = vec4(1,0,1,0);
 }

@@ -103,12 +103,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>.\glm-0.9.6.3;.\glew-2.1.0\include\;.\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\glm-0.9.6.3;.\glew-2.1.0\include\;.\freeglut\include;.\soil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>.\freeglut\lib;.\glew-2.1.0\lib\Debug\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\freeglut\lib;.\glew-2.1.0\lib\Debug\x64;.\soil;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>soil.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -152,15 +153,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Cloud.cpp" />
     <ClCompile Include="getbmp.cpp" />
+    <ClCompile Include="GridObjects.cpp" />
+    <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="TerrainGeneration.cpp" />
+    <ClCompile Include="TObjects.cpp" />
+    <ClCompile Include="Trees.cpp" />
+    <ClCompile Include="Water.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Cloud.h" />
     <ClInclude Include="getbmp.h" />
+    <ClInclude Include="GridObjects.h" />
+    <ClInclude Include="Skybox.h" />
+    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="TObjects.h" />
+    <ClInclude Include="Trees.h" />
+    <ClInclude Include="Water.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\SkyboxFragmentShader.glsl" />
+    <None Include="Shaders\SkyboxVertexShader.glsl" />
     <None Include="Shaders\TerrainFragmentShader.glsl" />
     <None Include="Shaders\TerrainVertexShader.glsl" />
+    <None Include="Shaders\WaterFragmentShader.glsl" />
+    <None Include="Shaders\WaterVertexShader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

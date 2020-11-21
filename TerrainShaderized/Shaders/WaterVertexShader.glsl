@@ -1,7 +1,7 @@
 #version 420 core
 
+
 layout(location=0) in vec4 terrainCoords;
-//layout(location=1) in vec4 terrainColors;
 layout(location=1) in vec3 terrainNormals;
 layout(location=2) in vec2 terrainTexCoods;
 
@@ -14,8 +14,7 @@ out vec2 texCoords;
 out float VertexHeight;
 
 uniform float waterFlowRate;
-uniform float HeightAdjust;
-
+//uniform float HeightAdjust;
 
 
 vec4 coords;
@@ -28,7 +27,8 @@ void main(void)
 	texCoords = terrainTexCoods;
 	coords = terrainCoords;
 
-	VertexHeight = terrainCoords.y;
+	coords.y = sin(coords.x + waterFlowRate) - cos(coords.z + waterFlowRate);
+	coords.y = coords.y / 5.0;
 
 	gl_Position = projMat * modelViewMat * coords;
 
