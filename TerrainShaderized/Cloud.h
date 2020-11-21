@@ -1,5 +1,10 @@
 #pragma once
-class Cloud
+#include "GridObjects.h"
+class Cloud : public GridObjects
 {
+private:
+
+public:
+
 };
 

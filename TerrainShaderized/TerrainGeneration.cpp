@@ -17,6 +17,7 @@
 #include "Water.h"
 #include "Skybox.h"
 #include "Camera.h"
+#include "Trees.h"
 
 using namespace std;
 using namespace glm;
@@ -30,6 +31,7 @@ glm::vec3 CamPos = glm::vec3(-10.0f, -5.0f, -30.0f);
 Terrain* terrain = new Terrain();
 Water* water = new Water();
 Skybox* skybox = new Skybox();
+Trees* trees = new Trees();
 Camera* camera = new Camera(glm::vec3(0), SCREEN_WIDTH, SCREEN_HEIGHT);
 glm::mat4 projMat;
 
@@ -73,6 +75,9 @@ void setup(void)
 	skybox->Setup();
 	skybox->SetCamera(projMat, camera->modelView);
 
+	trees->Setup();
+	trees->SetCamera(projMat, glm::scale(camera->modelView,glm::vec3(0.05,0.05,0.05)));
+
 }
 
 // Drawing routine.
@@ -89,15 +94,13 @@ void drawScene(void)
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 
 	skybox->Draw();
-
+	trees->Draw();
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	terrain->Draw();
 	water->Draw();
+
 	glDisable(GL_BLEND);
-
-
-
 
 	glutSwapBuffers();
 }
@@ -122,11 +125,11 @@ void keyInput(unsigned char key, int x, int y)
 		camera->position += camera->forward * camera->speed;
 		update = true;
 		break;
-	case 'a':
+	case 's':
 		camera->position -= camera->forward * camera->speed;
 		update = true;
 		break;
-	case 's':
+	case 'a':
 		camera->position += -glm::normalize(glm::cross(camera->forward, glm::vec3(0,1,0))) * camera->speed;
 		update = true;
 		break;
@@ -151,6 +154,7 @@ void UpdateGame() {
 	terrain->SetCamera(projMat, camera->modelView);
 	water->SetCamera(projMat, camera->modelView);
 	skybox->SetCamera(projMat, camera->modelView);
+	trees->SetCamera(projMat, glm::scale(camera->modelView, glm::vec3(0.05, 0.05, 0.05)));
 	
 	terrain->Update();
 	water->Update();
@@ -178,7 +182,7 @@ int main(int argc, char* argv[])
 	// The core profile excludes all discarded features
 	glutInitContextProfile(GLUT_CORE_PROFILE);
 	// Forward compatibility excludes features marked for deprecation ensuring compatability with future versions
-	glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
+	//glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_FULL_SCREEN);
 	glutInitWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT);

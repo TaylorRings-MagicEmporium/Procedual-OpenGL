@@ -10,7 +10,7 @@
 #include "getbmp.h"
 #include "SOIL/SOIL.h"
 
-static const int MAP_SIZE = 33;
+static const int MAP_SIZE = 65;
 
 struct Vertex
 {

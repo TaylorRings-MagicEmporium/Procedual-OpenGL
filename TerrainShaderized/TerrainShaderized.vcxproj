@@ -180,6 +180,8 @@
     <None Include="Shaders\SkyboxVertexShader.glsl" />
     <None Include="Shaders\TerrainFragmentShader.glsl" />
     <None Include="Shaders\TerrainVertexShader.glsl" />
+    <None Include="Shaders\TreeFragmentShader.glsl" />
+    <None Include="Shaders\TreeVertexShader.glsl" />
     <None Include="Shaders\WaterFragmentShader.glsl" />
     <None Include="Shaders\WaterVertexShader.glsl" />
   </ItemGroup>

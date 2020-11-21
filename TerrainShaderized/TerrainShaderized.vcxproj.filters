@@ -97,5 +97,11 @@
     <None Include="Shaders\SkyboxVertexShader.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="Shaders\TreeFragmentShader.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\TreeVertexShader.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
