@@ -7,6 +7,7 @@
 #include <GL/freeglut.h>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 #include "getbmp.h"
 #include "SOIL/SOIL.h"
 
@@ -60,6 +61,7 @@ public:
 	void CreateShader(std::string vertexShad, std::string fragShad);
 
 	void SetCamera(glm::mat4 projMat, glm::mat4 modelView);
+	void SetNormalMat();
 	void SetMandL(Material m, Light l);
 
 	void SetFloat(float da, std::string name);

@@ -16,7 +16,7 @@ protected:
 public:
 
 	float RANDOM_MAX = 1.0f;
-	float HEIGHT_MAX = 8.0f;
+	float HEIGHT_MAX = 10.0f;
 
 	void Diamond_step(int x, int y, int step, float** ValueArray);
 	void Square_step(int x, int y, int step, float** ValueArray);

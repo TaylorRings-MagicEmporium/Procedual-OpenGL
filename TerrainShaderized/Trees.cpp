@@ -1,5 +1,6 @@
 #include "Trees.h"
 
+
 void Trees::ComputeSingleBranch(int depth, float angle, glm::vec3 start, glm::vec3 end, glm::vec3& returnData) {
 	glm::vec3 s,ll,l;
 	float m;
@@ -167,7 +168,7 @@ void Trees::Setup()
 	}
 
 	CreateShader("Shaders/TreeVertexShader.glsl", "Shaders/TreeFragmentShader.glsl");
-	SetupPosition();
+	//SetupPosition();
 	CreateVAOVBO();
 	objectLoc = glGetUniformLocation(programID, "object");
 
@@ -180,7 +181,12 @@ void Trees::Close()
 
 void Trees::Update()
 {
+	auto endTime = std::chrono::system_clock::now();
+	std::chrono::duration<float> d = endTime - beginTime;
+	float ti = d.count();
+	//std::cout << ti << std::endl;
 
+	SetFloat(ti, "treeFlowRate");
 }
 
 void Trees::Draw()
@@ -272,8 +278,6 @@ void Trees::Draw()
 	glUniform1ui(objectLoc, LEAF); // Draw Trunk
 	glBindVertexArray(leafVAO);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, leafVerNum,1000); //leafVerNum
-
-
 }
 
 void Trees::CreateVAOVBO()
@@ -319,12 +323,14 @@ void Trees::CreateVAOVBO()
 	glEnableVertexAttribArray(4);
 	glVertexAttribDivisor(4, 1);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-
 }
 
 void Trees::SetupPosition() {
 	for (int i = 0; i < 1000; i++) {
 		positions[i] = glm::vec4(rand() % MAP_SIZE, 0, rand() % MAP_SIZE,1.0);
 	}
+}
+
+void Trees::SetPositions(std::vector < glm::vec4> pos) {
+	std::copy(pos.begin(), pos.end(), positions);
 }

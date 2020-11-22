@@ -266,3 +266,28 @@ void Terrain::SetImages() {
 	glUniform1i(TexLoc, SNOW);
 
 }
+
+std::vector<glm::vec4> Terrain::CreatePositions(float min, float max, int amount) {
+
+	std::vector<glm::vec4> positions;
+
+	for (int x = 0; x < MAP_SIZE; x++)
+	{
+		for (int z = 0; z < MAP_SIZE; z++)
+		{
+			if (objectValue[x][z] > min) {
+				if (objectValue[x][z] < max) {
+					AvailiblePositions.push_back(glm::vec2(x, z));
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < amount; i++) {
+		glm::vec2 giv = AvailiblePositions[rand() % AvailiblePositions.size()];
+		glm::vec4 temp = glm::vec4(giv.x, objectValue[(int)giv.x][(int)giv.y], giv.y,1.0);
+		positions.push_back(temp);
+	}
+
+	return positions;
+}

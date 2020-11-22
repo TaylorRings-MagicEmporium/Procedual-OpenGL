@@ -13,15 +13,15 @@ uniform mat4 projMat;
 uniform mat4 modelViewMat;
 uniform mat3 normalMat;
 uniform uint object;
-
+uniform float treeFlowRate;
 out vec4 colorsExport;
 
 vec4 coords;
 
 void main(void)
 {
-   if (object == TRUNK) coords = (TrunkCoords * 0.05) + PosOffset;
-   if (object == LEAF) coords = (LeafCoords * 0.05) + PosOffset;
+   if (object == TRUNK) coords = ((TrunkCoords) * 0.05) + PosOffset;
+   if (object == LEAF) coords = ((LeafCoords) * 0.05) + PosOffset;
 
    gl_Position = projMat * modelViewMat * coords;
    

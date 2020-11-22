@@ -26,13 +26,13 @@ using namespace glm;
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
-glm::vec3 CamPos = glm::vec3(-10.0f, -5.0f, -30.0f);
+//glm::vec3 CamPos = glm::vec3(-10.0f, -5.0f, -30.0f);
 
 Terrain* terrain = new Terrain();
 Water* water = new Water();
 Skybox* skybox = new Skybox();
 Trees* trees = new Trees();
-Camera* camera = new Camera(glm::vec3(0), SCREEN_WIDTH, SCREEN_HEIGHT);
+Camera* camera = new Camera(glm::vec3(-10.0f, -5.0f, -30.0f), SCREEN_WIDTH, SCREEN_HEIGHT);
 glm::mat4 projMat;
 
 static const Material terrainFandB =
@@ -65,18 +65,24 @@ void setup(void)
 
 	terrain->Setup();
 	terrain->SetCamera(projMat, camera->modelView);
+	terrain->SetNormalMat();
 	terrain->SetFloat(terrain->HEIGHT_MAX, "HEIGHT_MAX");
 	terrain->SetMandL(terrainFandB, light0);
+	trees->SetPositions(terrain->CreatePositions(-3.0, 1.0, 1000));
 
 	water->Setup();
 	water->SetCamera(projMat, camera->modelView);
+	water->SetNormalMat();
 	water->SetMandL(terrainFandB, light0);
 
 	skybox->Setup();
 	skybox->SetCamera(projMat, camera->modelView);
+	skybox->SetNormalMat();
 
 	trees->Setup();
 	trees->SetCamera(projMat, camera->modelView);
+	trees->SetNormalMat();
+
 
 }
 
@@ -158,7 +164,7 @@ void UpdateGame() {
 	
 	terrain->Update();
 	water->Update();
-
+	trees->Update();
 	glutPostRedisplay();
 }
 
@@ -212,3 +218,4 @@ int main(int argc, char* argv[])
 	delete terrain;
 	delete skybox;
 }
+

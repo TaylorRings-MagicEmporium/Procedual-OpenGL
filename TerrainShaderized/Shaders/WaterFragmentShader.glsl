@@ -26,6 +26,7 @@ struct Light
 };
 uniform Material terrainFandB;
 uniform Light light0;
+uniform float waterFlowRate;
 
 vec3 normal;
 vec3 lightDirection;
@@ -35,7 +36,6 @@ vec4 tempTexColor;
 vec4 total;
 
 float heightPercent;
-float adjust = 0.3;
 out vec4 colorsOut;
 
 void main(void)
@@ -45,14 +45,10 @@ void main(void)
 	lightDirection = normalize(vec3(light0.coords));
 	AmbDifCombo = max(dot(normal,lightDirection),0.0f)*(light0.difCols * terrainFandB.difRefl);
 
-
-	TexColor = texture(waterTex, texCoords);
-		
-	total = TexColor* AmbDifCombo;
-	total.w = 0.5;
-
+	TexColor = texture(waterTex, texCoords + vec2(0,sin(waterFlowRate)/500));
 	
-
+	total = TexColor* AmbDifCombo;
+	total.w = 0.7;
 
 	colorsOut = total;
 	//colorsOut = vec4(1,0,1,0);

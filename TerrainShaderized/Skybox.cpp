@@ -42,6 +42,7 @@ void Skybox::Draw()
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 	glDepthFunc(GL_LESS);
+	//glm::rotate()
 }
 
 void Skybox::SetVAOVBO()

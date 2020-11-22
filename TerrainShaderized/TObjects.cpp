@@ -62,13 +62,17 @@ void TObjects::SetCamera(glm::mat4 projMat, glm::mat4 modelView) {
 	
 	unsigned int modelViewMatLoc = glGetUniformLocation(programID, "modelViewMat");
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(modelView));
+	this->modelView = modelView;
+	glUseProgram(0);
+}
 
+void TObjects::SetNormalMat() {
+	glUseProgram(programID);
 	unsigned int normalMatLoc = glGetUniformLocation(programID, "normalMat");
 	glm::mat3 normalMat = glm::transpose(glm::inverse(glm::mat3(modelView)));
 	glUniformMatrix3fv(normalMatLoc, 1, GL_FALSE, value_ptr(normalMat));
-
-	this->modelView = modelView;
 	glUseProgram(0);
+
 }
 
 void TObjects::SetMandL(Material m, Light l) {

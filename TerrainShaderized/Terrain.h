@@ -9,7 +9,7 @@ private:
 	unsigned int texture[4];
 	std::string textureFileNames[4];
 
-
+	std::vector<glm::vec2> AvailiblePositions;
 public:
 	Terrain() {};
 
@@ -17,6 +17,7 @@ public:
 	void Close();
 	void Update();
 	void Draw();
+	std::vector<glm::vec4> CreatePositions(float min, float max, int amount);
 
 	void SetImages();
 };
