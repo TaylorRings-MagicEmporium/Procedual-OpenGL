@@ -22,7 +22,8 @@ private:
 	objectLoc;
 
 	glm::vec4 positions[NUMOFTREES];
-
+	glm::mat4 objectTransform[NUMOFTREES];
+	float objectAngle[NUMOFTREES];
 	//const int NUMPOINTS = 1000;
 	const int MAXLEVEL = 6;
 	const float R = 0.85;
@@ -44,6 +45,6 @@ public:
 	void CreateVAOVBO();
 
 	void SetPositions(std::vector<glm::vec4> pos);
-
+	void FillMatArray();
 };
 

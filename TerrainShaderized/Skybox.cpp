@@ -60,14 +60,15 @@ void Skybox::SetVAOVBO()
 
 void Skybox::SetCubeMap()
 {
-	std::string cubemapTexs[] = {
-		"Textures/SkyBox/SkyBoxRight.jpg",
-		"Textures/SkyBox/SkyBoxLeft.jpg",
-		"Textures/SkyBox/SkyBoxTop.jpg",
-		"Textures/SkyBox/SkyBoxBottom.jpg",
-		"Textures/SkyBox/SkyBoxFront.jpg",
-		"Textures/SkyBox/SkyBoxBack.jpg"
-	};
+	//std::string cubemapTexs[] = {
+	//	"Textures/SkyBox/SkyBoxRight.jpg",
+	//	"Textures/SkyBox/SkyBoxLeft.jpg",
+	//	"Textures/SkyBox/SkyBoxTop.jpg",
+	//	"Textures/SkyBox/SkyBoxBottom.jpg",
+	//	"Textures/SkyBox/SkyBoxFront.jpg",
+	//	"Textures/SkyBox/SkyBoxBack.jpg"
+	//};
+
 	glUseProgram(programID);
 	glGenTextures(1, &tex);
 	glActiveTexture(GL_TEXTURE0 + tex);

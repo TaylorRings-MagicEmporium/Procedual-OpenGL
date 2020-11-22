@@ -103,5 +103,11 @@
     <None Include="Shaders\TreeVertexShader.glsl">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="Shaders\CloudFragmentShader.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="Shaders\CloudVertexShader.glsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

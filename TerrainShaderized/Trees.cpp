@@ -168,6 +168,7 @@ void Trees::Setup()
 	}
 
 	CreateShader("Shaders/TreeVertexShader.glsl", "Shaders/TreeFragmentShader.glsl");
+	FillMatArray();
 	//SetupPosition();
 	CreateVAOVBO();
 	objectLoc = glGetUniformLocation(programID, "object");
@@ -187,6 +188,15 @@ void Trees::Update()
 	//std::cout << ti << std::endl;
 
 	SetFloat(ti, "treeFlowRate");
+
+	FillMatArray();
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, NUMOFTREES * sizeof(glm::mat4), objectTransform);
+
+	glBindVertexArray(leafVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, NUMOFTREES * sizeof(glm::mat4), objectTransform);
 }
 
 void Trees::Draw()
@@ -231,9 +241,6 @@ void Trees::Draw()
 
 	glUniform1ui(objectLoc, TRUNK);
 	glBindVertexArray(vao);
-
-	glm::mat4 temp = glm::mat4(1);
-	//temp = glm::scale(modelView, glm::vec3(0.05, 0.05, 0.05));
 
 	unsigned int modelViewMatLoc = glGetUniformLocation(programID, "modelViewMat");
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(modelView));
@@ -302,11 +309,23 @@ void Trees::CreateVAOVBO()
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(positions[0]), (void*)0);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(objectTransform), objectTransform, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4*sizeof(glm::vec4), (void*)0);
 	glEnableVertexAttribArray(4);
 	glVertexAttribDivisor(4, 1);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(1 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(5);
+	glVertexAttribDivisor(5, 1);
+
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(2 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(6);
+	glVertexAttribDivisor(6, 1);
+
+	glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)(3 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(7);
+	glVertexAttribDivisor(7, 1);
 
 
 	glBindVertexArray(leafVAO);
@@ -318,19 +337,49 @@ void Trees::CreateVAOVBO()
 	glEnableVertexAttribArray(3);
 
 	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(positions[0]), (void*)0);
+	glBufferData(GL_ARRAY_BUFFER,sizeof(objectTransform), objectTransform, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(glm::vec4), (void*)0);
 	glEnableVertexAttribArray(4);
 	glVertexAttribDivisor(4, 1);
+
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4* sizeof(glm::vec4), (void*)(1 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(5);
+	glVertexAttribDivisor(5, 1);
+
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 *sizeof(glm::vec4), (void*)(2 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(6);
+	glVertexAttribDivisor(6, 1);
+
+	glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, 4 *sizeof(glm::vec4), (void*)(3 * sizeof(glm::vec4)));
+	glEnableVertexAttribArray(7);
+	glVertexAttribDivisor(7, 1);
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void Trees::SetupPosition() {
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < NUMOFTREES; i++) {
 		positions[i] = glm::vec4(rand() % MAP_SIZE, 0, rand() % MAP_SIZE,1.0);
+		objectAngle[i] = rand() % 90;
 	}
 }
 
 void Trees::SetPositions(std::vector < glm::vec4> pos) {
 	std::copy(pos.begin(), pos.end(), positions);
+	for (int i = 0; i < NUMOFTREES; i++) {
+		objectAngle[i] = rand() % 90;
+	}
+}
+
+void Trees::FillMatArray() {
+	for (int i = 0; i < NUMOFTREES; i++) {
+		glm::mat4 temp = modelView;
+		temp = glm::translate(temp, glm::vec3(positions[i]) + glm::vec3(0,-0.1,0));
+		temp = glm::rotate(temp, objectAngle[i], glm::vec3(0, 1, 0));
+		temp = glm::scale(temp, glm::vec3(0.05, 0.05, 0.05));
+
+		objectTransform[i] = temp;
+	}
 }
