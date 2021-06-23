@@ -4,6 +4,8 @@
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+
+// the camera class is responsible of moving and rotating the camera based on the user's input.
 class Camera
 {
 public:

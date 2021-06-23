@@ -1,18 +1,17 @@
 #include "Trees.h"
 
-
+// creates an angle based on the previous angle and position to create a branch
 void Trees::ComputeSingleBranch(int depth, float angle, glm::vec3 start, glm::vec3 end, glm::vec3& returnData) {
 	glm::vec3 s,ll,l;
 	float m;
 	double val;
 
 
-	s.x = (end.x - start.x) * R; //R is the length factor for branches
+	s.x = (end.x - start.x) * R; //R is the length factor for branches based on the size of the parent branch
 	s.y = (end.y - start.y) * R;
 	s.z = (end.z - start.z) * R;
 	
-	//m = glm::sqrt(s.x * s.x + s.y * s.y + s.z * s.z);
-
+	// calculates the 2D angles of the branch
 	ll.x = cos(angle / 2.0) * s.x - sin(angle / 2.0) * s.y;
 	ll.y = sin(angle / 2.0) * s.x + cos(angle / 2.0) * s.y;
 	ll.z = 0.0;
@@ -24,6 +23,7 @@ void Trees::ComputeSingleBranch(int depth, float angle, glm::vec3 start, glm::ve
 		val = 2;
 	}
 
+	// calculates the 3D angles of the branch
 	l.x = cos(val * angle / 2.0) * ll.x - sin(val * angle / 2.0) * ll.z;
 	l.y = ll.y;
 	l.z = cos(val * angle / 2.0) * ll.x + sin(val * angle / 2.0) * ll.z;
@@ -33,6 +33,7 @@ void Trees::ComputeSingleBranch(int depth, float angle, glm::vec3 start, glm::ve
 	returnData.z = end.z + l.z;
 }
 
+// a recursive function that produces branches of various sizes
 void Trees::RecurComputeBranch(int depth, int index, float angle, std::vector<glm::vec3> basePts, vector<glm::vec3> BrPts) {
 	int i, size;
 	glm::vec3 returnedData;
@@ -44,8 +45,10 @@ void Trees::RecurComputeBranch(int depth, int index, float angle, std::vector<gl
 	size = basePts.size();
 	if (size == 0) return;
 	std::cout << index << std::endl;
+
 	for (i = 0; i < size; i++)
 	{
+		// this process is repeated twice for two branches from each parent.
 		ComputeSingleBranch(depth, angle, glm::vec3(basePts[i].x,basePts[i].y,basePts[i].z), glm::vec3(BrPts[i].x, BrPts[i].y, BrPts[i].z), returnedData);
 		TrunkVertices[index].coords[0] = returnedData.x;
 		TrunkVertices[index].coords[1] = returnedData.y;
@@ -81,6 +84,7 @@ void Trees::Setup()
 	glm::vec3 ttPt;
 	std::vector<glm::vec3> BasePts, BranchPts;
 
+	// assigns the colour for the branches
 	for (i = 0; i < NUMPOINTS; i++) {
 		//TrunkVertices[i].normal = glm::vec3(0, 1, 0);
 		//TrunkVertices[i].texcoords = glm::vec2(0);
@@ -90,6 +94,7 @@ void Trees::Setup()
 		TrunkVertices[i].colors[3] = 1.0;
 	}
 
+	// produces a "branch" that acts as the trunk
 	//main trunk
 	TrunkVertices[0].coords[0] = 0.0;
 	TrunkVertices[0].coords[1] = 0.0;
@@ -231,6 +236,7 @@ void Trees::Draw()
 		ttArr.clear();
 	}
 
+	// instead of element range, the branch index count is seperated into defined sizes
 	glm::uint L1[2], L2[6], L3[14], L4[30], L5[62], L6[BRANCH_INDEX_COUNT - 62];
 	memcpy(L1, branchIndexData, 2 * sizeof(glm::uint));
 	memcpy(L2, branchIndexData, 6 * sizeof(glm::uint));
@@ -245,46 +251,28 @@ void Trees::Draw()
 	unsigned int modelViewMatLoc = glGetUniformLocation(programID, "modelViewMat");
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, value_ptr(modelView));
 
-
-	//glLineWidth(1.0f);
-//glDrawElements(GL_LINES, BRANCH_INDEX_COUNT, GL_UNSIGNED_INT, branchIndexData);
 	glLineWidth(10.0f);
-	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2, GL_UNSIGNED_INT, branchIndexData);
-	//glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, L1);
-	glDrawElementsInstanced(GL_LINES, 2, GL_UNSIGNED_INT, L1, 1000);
+	glDrawElementsInstanced(GL_LINES, 2, GL_UNSIGNED_INT, L1, NUMOFTREES);
 	glLineWidth(8.0f);
-	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 2 + 4, GL_UNSIGNED_INT, branchIndexData);
-	//glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, L2);
-	glDrawElementsInstanced(GL_LINES, 6, GL_UNSIGNED_INT, L2, 1000);
+	glDrawElementsInstanced(GL_LINES, 6, GL_UNSIGNED_INT, L2, NUMOFTREES);
 	glLineWidth(6.0f);
-	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 6 + 8, GL_UNSIGNED_INT, branchIndexData);
-	//glDrawElements(GL_LINES, 14, GL_UNSIGNED_INT, L3);
-	glDrawElementsInstanced(GL_LINES, 14, GL_UNSIGNED_INT, L3, 1000);
+	glDrawElementsInstanced(GL_LINES, 14, GL_UNSIGNED_INT, L3, NUMOFTREES);
 	glLineWidth(4.0f);
-	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 14 + 16, GL_UNSIGNED_INT, branchIndexData);
-	//glDrawElements(GL_LINES, 30, GL_UNSIGNED_INT, L4);
-	glDrawElementsInstanced(GL_LINES, 30, GL_UNSIGNED_INT, L4, 1000);
+	glDrawElementsInstanced(GL_LINES, 30, GL_UNSIGNED_INT, L4, NUMOFTREES);
 	glLineWidth(2.0f);
-	//glDrawRangeElements(GL_LINES, 0, BRANCH_INDEX_COUNT, 30 + 32, GL_UNSIGNED_INT, branchIndexData);
-	//glDrawElements(GL_LINES, 62, GL_UNSIGNED_INT, L5);
-	glDrawElementsInstanced(GL_LINES, 62, GL_UNSIGNED_INT, L5, 1000);
+	glDrawElementsInstanced(GL_LINES, 62, GL_UNSIGNED_INT, L5, NUMOFTREES);
 	glLineWidth(1.0f);
-	////glDrawElements(GL_LINES, BRANCH_INDEX_COUNT - 62, GL_UNSIGNED_INT, L6);
-	glDrawElementsInstanced(GL_LINES, BRANCH_INDEX_COUNT - 62, GL_UNSIGNED_INT, L6, 1000);
+	glDrawElementsInstanced(GL_LINES, BRANCH_INDEX_COUNT - 62, GL_UNSIGNED_INT, L6, NUMOFTREES);
 
 	glUniform1ui(objectLoc, LEAF);
 	glBindVertexArray(leafVAO);
-
-	//temp = modelView;
-	//temp = glm::translate(modelView, glm::vec3(positions[i]));
-	//temp = glm::scale(temp, glm::vec3(0.05, 0.05, 0.05));
 
 	int leafNum, leafVerNum;
 	leafNum = pow(2, MAXLEVEL - 1);
 	leafVerNum = leafNum * 6;
 	glUniform1ui(objectLoc, LEAF); // Draw Trunk
 	glBindVertexArray(leafVAO);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, leafVerNum,1000); //leafVerNum
+	glDrawArraysInstanced(GL_TRIANGLES, 0, leafVerNum, NUMOFTREES); //leafVerNum
 }
 
 void Trees::CreateVAOVBO()
@@ -307,7 +295,7 @@ void Trees::CreateVAOVBO()
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(TrunkVertices[0]), (GLvoid*)sizeof(TrunkVertices[0].coords));
 	glEnableVertexAttribArray(1);
 
-
+	// the reason why the instance VBO has 4 locations is for the 4 vectors of a 4x4 matrix. shaders can only accept up to vector4 at a time.
 	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(objectTransform), objectTransform, GL_STATIC_DRAW);
 
@@ -373,6 +361,7 @@ void Trees::SetPositions(std::vector < glm::vec4> pos) {
 	}
 }
 
+// creates a array of matrices that are fed directly to the shader using locations
 void Trees::FillMatArray() {
 	for (int i = 0; i < NUMOFTREES; i++) {
 		glm::mat4 temp = modelView;

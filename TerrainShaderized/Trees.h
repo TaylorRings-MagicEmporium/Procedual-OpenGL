@@ -12,7 +12,7 @@ struct TVertex
 	float colors[4];
 };
 
-
+// the trees class is responsible of creating trees and leaves to populate the world. it also uses instancing to become more efficient.
 class Trees : public TObjects
 {
 private:

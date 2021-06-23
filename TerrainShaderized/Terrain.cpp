@@ -34,6 +34,7 @@ void Terrain::Setup() {
 				Square_step(x, y, step, objectValue);
 			}
 		}
+
 		//std::cout << std::endl;
 		//std::cout << "BEFORE: " << step << std::endl;
 		step = step / 2;
@@ -58,12 +59,10 @@ void Terrain::Setup() {
 
 			ObjectVertices[i] = {
 				glm::vec4((float)x,objectValue[x][z],(float)z,1.0),
-				//vec4(0.0,0.0,0.0,1.0),
 				glm::vec3(0.0,1.0,0.0),
 				glm::vec2((1.0f / (float(MAP_SIZE) - 1)) * x,(1.0f / (float(MAP_SIZE) - 1)) * z)
 			};
 
-			//std::cout << (1.0f / (float(MAP_SIZE)-1)) * (x) << ", " << (1.0f / (float(MAP_SIZE)-1)) * (z) << std::endl;
 			i++;
 		}
 	}
@@ -267,6 +266,8 @@ void Terrain::SetImages() {
 
 }
 
+// with a given min, max and amount, the function will output a set of coords that the object can be at.
+// for example, trees can only be on grass and not underwater or in the sand.
 std::vector<glm::vec4> Terrain::CreatePositions(float min, float max, int amount) {
 
 	std::vector<glm::vec4> positions;

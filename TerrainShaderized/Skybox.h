@@ -1,5 +1,6 @@
 #pragma once
 #include "TObjects.h"
+// the Skybox class is responsible of creating a 3D Cube that surrounds the player and scene.
 class Skybox : public TObjects
 {
 private:

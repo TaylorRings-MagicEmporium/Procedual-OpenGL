@@ -109,7 +109,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>.\freeglut\lib;.\glew-2.1.0\lib\Debug\x64;.\soil;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>soil.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>soil.lib;freeglut.lib;glew32d.lib;glew32sd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -142,20 +142,22 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\OpenGL\glm-0.9.6.3;C:\OpenGL\glew-1.10.0\include\;C:\OpenGL\freeglut-MSVC-2.8.1-1.mp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\glm-0.9.6.3;.\glew-2.1.0\include\;.\freeglut\include;.\soil\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\OpenGL\freeglut-MSVC-2.8.1-1.mp\lib;C:\OpenGL\glew-1.10.0\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\freeglut\lib;.\glew-2.1.0\lib\Release\x64;.\soil;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>soil.lib;glew32.lib;glew32s.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cloud.cpp" />
     <ClCompile Include="getbmp.cpp" />
+    <ClCompile Include="Grass.cpp" />
     <ClCompile Include="GridObjects.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Terrain.cpp" />
@@ -168,6 +170,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cloud.h" />
     <ClInclude Include="getbmp.h" />
+    <ClInclude Include="Grass.h" />
     <ClInclude Include="GridObjects.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="Terrain.h" />
@@ -178,6 +181,8 @@
   <ItemGroup>
     <None Include="Shaders\CloudFragmentShader.glsl" />
     <None Include="Shaders\CloudVertexShader.glsl" />
+    <None Include="Shaders\GrassFragmentShader.glsl" />
+    <None Include="Shaders\GrassVertexShader.glsl" />
     <None Include="Shaders\SkyboxFragmentShader.glsl" />
     <None Include="Shaders\SkyboxVertexShader.glsl" />
     <None Include="Shaders\TerrainFragmentShader.glsl" />

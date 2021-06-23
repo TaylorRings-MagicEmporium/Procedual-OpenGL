@@ -3,6 +3,7 @@
 
 #include <ctime>
 
+// the water class is responsible in controlling the water flow, size and height
 class Water : public GridObjects
 {
 private:

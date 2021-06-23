@@ -37,6 +37,7 @@ struct Light
 	glm::vec4 coords;
 };
 
+// TObjects is the base parent for all types of components. it holds all information for creating an object with a program and its VAO and VBO
 class TObjects
 {
 protected:

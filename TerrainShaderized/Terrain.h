@@ -2,6 +2,8 @@
 #include "GridObjects.h"
 
 enum TextureName { SAND, GRASS, ROCK, SNOW };
+
+//the Terrain class is responsible of creating the ground of the scene.
 class Terrain : public GridObjects
 {
 private:
